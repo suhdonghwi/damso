@@ -5,6 +5,7 @@
 
 #define BUF_SIZE 1024
 #define MAX_CLIENT_SIZE 1024
+#define PORT 5000
 
 struct socket
 {

@@ -8,7 +8,7 @@
 
 #include "./common.h"
 
-void receive_server_addr(char *dest, int port, char *multi_addr)
+void receive_server_addr(char *dest, char *multi_addr)
 {
   /* 
     socket(DOMAIN, TYPE, PROTOCOL): 소켓을 생성하고 소켓 디스크립터를 반환합니다.
@@ -22,7 +22,7 @@ void receive_server_addr(char *dest, int port, char *multi_addr)
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;                // IPv4 형식으로 지정합니다.
   addr.sin_addr.s_addr = htonl(INADDR_ANY); // IP를 지정합니다. htonl(INADDR_ANY)가 현재 시스템의 IP를 반환합니다.
-  addr.sin_port = htons(port);              //htons(atoi(argv[2]));     // 포트를 지정합니다.
+  addr.sin_port = htons(PORT);
 
   /*
     setsockopt(...) : 소켓의 옵션을 설정합니다.
@@ -68,14 +68,12 @@ int main(int argc, char *argv[])
 {
   if (argc != 3)
   {
-    printf("Usage : %s <GroupIP> <PORT>\n", argv[0]);
+    printf("Usage : %s <GroupIP>\n", argv[0]);
     exit(1);
   }
 
-  int port = atoi(argv[2]);
-
   char server_addr_str[BUF_SIZE];
-  receive_server_addr(server_addr_str, port, argv[1]);
+  receive_server_addr(server_addr_str, argv[1]);
 
   printf("Received server address : %s", server_addr_str);
 
@@ -89,10 +87,12 @@ int main(int argc, char *argv[])
   memset(&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = inet_addr(server_addr_str);
-  serv_addr.sin_port = htons(port);
+  serv_addr.sin_port = htons(PORT);
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
+  {
     error_handle("connect() error");
+  }
 
   return 0;
 }

@@ -10,8 +10,6 @@
 
 #include "./common.h"
 
-#define MAX_CLIENT_SIZE 1024
-
 // Helper functions
 
 struct socket accept_client(struct socket serv_sock)
@@ -29,7 +27,7 @@ struct socket accept_client(struct socket serv_sock)
   return result;
 }
 
-struct socket make_server_sock(int port)
+struct socket make_server_sock()
 {
   int descriptor = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -37,7 +35,7 @@ struct socket make_server_sock(int port)
   memset(&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(port);
+  serv_addr.sin_port = htons(PORT);
 
   int on = 1;
   setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on));
@@ -46,7 +44,7 @@ struct socket make_server_sock(int port)
   return result;
 }
 
-struct socket make_multicast_sock(char *addr, int port)
+struct socket make_multicast_sock(char *addr)
 {
   int descriptor = socket(PF_INET, SOCK_DGRAM, 0);
 
@@ -54,7 +52,7 @@ struct socket make_multicast_sock(char *addr, int port)
   memset(&mul_addr, 0, sizeof(mul_addr));
   mul_addr.sin_family = AF_INET;              // IPv4 형식으로 지정합니다.
   mul_addr.sin_addr.s_addr = inet_addr(addr); // IP를 지정합니다. htonl(INADDR_ANY)가 현재 시스템의 IP를 반환합니다.
-  mul_addr.sin_port = htons(port);            // 포트를 지정합니다.
+  mul_addr.sin_port = htons(PORT);            // 포트를 지정합니다.
 
   int on = 1;
   int time_live = 2;
@@ -71,16 +69,16 @@ struct socket make_multicast_sock(char *addr, int port)
 
 int main(int argc, char *argv[])
 {
-  if (argc != 4)
+  if (argc != 3)
   {
-    printf("Usage : %s <Group IP> <Own IP> <Port>\n", argv[0]);
+    printf("Usage : %s <Group IP> <Own IP>\n", argv[0]);
     exit(1);
   }
 
   char server_addr[BUF_SIZE];
   strcpy(server_addr, argv[2]);
 
-  struct socket serv_sock = make_server_sock(atoi(argv[3]));
+  struct socket serv_sock = make_server_sock();
 
   if (bind(serv_sock.descriptor, (struct sockaddr *)&serv_sock.addr, sizeof(serv_sock.addr)) == -1)
   {
@@ -92,7 +90,7 @@ int main(int argc, char *argv[])
     error_handle("listen() error");
   }
 
-  struct socket multi_sock = make_multicast_sock(argv[1], atoi(argv[3]));
+  struct socket multi_sock = make_multicast_sock(argv[1]);
 
   struct timeval timeout;
   timeout.tv_sec = 1;
@@ -150,7 +148,7 @@ int main(int argc, char *argv[])
         {
           FD_CLR(clnt.descriptor, &read_set_backup);
           close(clnt.descriptor);
-          printf("Closed client: %d \n", clnt.descriptor);
+          printf("Closed client : %d\n", clnt.descriptor);
         }
         else
         {
