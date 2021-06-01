@@ -8,6 +8,12 @@
 
 #define BUF_SIZE 1024
 
+void error_handle(char *msg)
+{
+  fputs(msg, stderr);
+  exit(1);
+}
+
 void receive_server_addr(char *dest, int port, char *multi_addr)
 {
   /* 
@@ -39,9 +45,7 @@ void receive_server_addr(char *dest, int port, char *multi_addr)
   */
   if (bind(multi_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1)
   {
-    printf("bind() error : %d", errno);
-    close(multi_sock);
-    exit(1);
+    error_handle("bind() error");
   }
 
   struct ip_mreq join_addr;                               // 멀티캐스트 통신을 위한 정보를 담는 구조체입니다.
@@ -52,18 +56,14 @@ void receive_server_addr(char *dest, int port, char *multi_addr)
   if (setsockopt(multi_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *)&join_addr,
                  sizeof(join_addr)) < 0)
   {
-    printf("setsockopt() join error\n");
-    close(multi_sock);
-    exit(1);
+    error_handle("setsockopt() join error");
   }
 
   char server_addr[BUF_SIZE];
   int len = recvfrom(multi_sock, &server_addr, sizeof(server_addr), 0, NULL, 0);
   if (len < 0)
   {
-    printf("recvfrom() error\n");
-    close(multi_sock);
-    exit(1);
+    error_handle("recvfrom() error");
   }
 
   strcpy(dest, server_addr);
@@ -78,9 +78,27 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  char server_addr[BUF_SIZE];
-  receive_server_addr(server_addr, atoi(argv[2]), argv[1]);
+  int port = atoi(argv[2]);
 
-  printf("%s", server_addr);
+  char server_addr_str[BUF_SIZE];
+  receive_server_addr(server_addr_str, port, argv[1]);
+
+  printf("Received server address : %s", server_addr_str);
+
+  int sock = socket(PF_INET, SOCK_STREAM, 0);
+  if (sock == -1)
+  {
+    error_handle("socket() error");
+  }
+
+  struct sockaddr_in serv_addr;
+  memset(&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = inet_addr(server_addr_str);
+  serv_addr.sin_port = htons(port);
+
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
+    error_handle("connect() error");
+
   return 0;
 }
