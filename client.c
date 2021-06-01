@@ -64,6 +64,29 @@ void receive_server_addr(char *dest, char *multi_addr)
   close(multi_sock);
 }
 
+struct socket make_client_sock(char *server_addr_str)
+{
+  int descriptor = socket(PF_INET, SOCK_STREAM, 0);
+  if (descriptor == -1)
+  {
+    error_handle("socket() error");
+  }
+
+  struct sockaddr_in serv_addr;
+  memset(&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = inet_addr(server_addr_str);
+  serv_addr.sin_port = htons(PORT);
+
+  if (connect(descriptor, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
+  {
+    error_handle("connect() error");
+  }
+
+  struct socket result = {.descriptor = descriptor, .addr = serv_addr};
+  return result;
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)
@@ -75,24 +98,8 @@ int main(int argc, char *argv[])
   char server_addr_str[BUF_SIZE];
   receive_server_addr(server_addr_str, argv[1]);
 
-  printf("Received server address : %s", server_addr_str);
+  printf("Received server address : %s\n", server_addr_str);
 
-  int sock = socket(PF_INET, SOCK_STREAM, 0);
-  if (sock == -1)
-  {
-    error_handle("socket() error");
-  }
-
-  struct sockaddr_in serv_addr;
-  memset(&serv_addr, 0, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = inet_addr(server_addr_str);
-  serv_addr.sin_port = htons(PORT);
-
-  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
-  {
-    error_handle("connect() error");
-  }
-
+  struct socket clnt_sock = make_client_sock(server_addr_str);
   return 0;
 }

@@ -47,6 +47,10 @@ struct socket make_server_sock()
 struct socket make_multicast_sock(char *addr)
 {
   int descriptor = socket(PF_INET, SOCK_DGRAM, 0);
+  if (descriptor == -1)
+  {
+    error_handle("socket() error");
+  }
 
   struct sockaddr_in mul_addr; // 패킷을 보낼 주소의 정보를 담는 구조체입니다.
   memset(&mul_addr, 0, sizeof(mul_addr));
