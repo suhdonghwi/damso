@@ -8,14 +8,8 @@
 
 #define BUF_SIZE 1024
 
-int main(int argc, char *argv[])
+void receive_server_addr(char *dest, int port, char *multi_addr)
 {
-  if (argc != 3)
-  {
-    printf("Usage : %s <GroupIP> <PORT>\n", argv[0]);
-    exit(1);
-  }
-
   /* 
     socket(DOMAIN, TYPE, PROTOCOL): 소켓을 생성하고 소켓 디스크립터를 반환합니다.
     - DOMAIN : 어떤 영역에서 통신할 것인지를 결정합니다. PF_INET은 IPv4를 의미합니다.
@@ -28,7 +22,7 @@ int main(int argc, char *argv[])
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;                // IPv4 형식으로 지정합니다.
   addr.sin_addr.s_addr = htonl(INADDR_ANY); // IP를 지정합니다. htonl(INADDR_ANY)가 현재 시스템의 IP를 반환합니다.
-  addr.sin_port = htons(atoi(argv[2]));     // 포트를 지정합니다.
+  addr.sin_port = htons(port);              //htons(atoi(argv[2]));     // 포트를 지정합니다.
 
   /*
     setsockopt(...) : 소켓의 옵션을 설정합니다.
@@ -50,9 +44,9 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  struct ip_mreq join_addr;                            // 멀티캐스트 통신을 위한 정보를 담는 구조체입니다.
-  join_addr.imr_multiaddr.s_addr = inet_addr(argv[1]); // 멀티캐스트 그룹의 IP 주소를 지정합니다.
-  join_addr.imr_interface.s_addr = htonl(INADDR_ANY);  // 멀티캐스트 패킷을 받을 네트워크 인터페이스를 지정합니다.
+  struct ip_mreq join_addr;                               // 멀티캐스트 통신을 위한 정보를 담는 구조체입니다.
+  join_addr.imr_multiaddr.s_addr = inet_addr(multi_addr); // 멀티캐스트 그룹의 IP 주소를 지정합니다.
+  join_addr.imr_interface.s_addr = htonl(INADDR_ANY);     // 멀티캐스트 패킷을 받을 네트워크 인터페이스를 지정합니다.
 
   // setsockopt로 IP_ADD_MEMBERSHIP을 지정하면 소켓이 join_addr이 나타내는 멀티캐스트 그룹에 가입됩니다.
   if (setsockopt(multi_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *)&join_addr,
@@ -72,8 +66,21 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  printf("%s\n", server_addr);
-
+  strcpy(dest, server_addr);
   close(multi_sock);
+}
+
+int main(int argc, char *argv[])
+{
+  if (argc != 3)
+  {
+    printf("Usage : %s <GroupIP> <PORT>\n", argv[0]);
+    exit(1);
+  }
+
+  char server_addr[BUF_SIZE];
+  receive_server_addr(server_addr, atoi(argv[2]), argv[1]);
+
+  printf("%s", server_addr);
   return 0;
 }
