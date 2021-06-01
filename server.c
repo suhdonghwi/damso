@@ -58,7 +58,6 @@ struct socket make_server_sock(int port)
   serv_addr.sin_port = htons(port);
 
   int on = 1;
-
   setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR, (const char *)&on, sizeof(on));
 
   struct socket result = {.descriptor = descriptor, .addr = serv_addr};

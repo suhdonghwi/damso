@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define BUF_SIZE 30
 
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
     - SO_REUSEADDR : 지역 주소(IP 주소, 포트번호)의 재사용을 허용합니다.
   */
   int on = 1;
-  setsockopt(recv_sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+  setsockopt(recv_sock, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
 
   /* 
     bind(SOCKFD, ADDR, ADDRLEN) : IP 주소와 소켓 디스크립터를 묶어서 외부에서 IP로 통신을 시도하는 컴퓨터가 소켓 디스크립터를 찾을 수 있도록 해줍니다. 실패하면 -1을 반환합니다.
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
   */
   if (bind(recv_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1)
   {
-    printf("bind() error");
+    printf("bind() error : %d", errno);
     close(recv_sock);
     exit(1);
   }
