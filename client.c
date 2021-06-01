@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define BUF_SIZE 30
+#define BUF_SIZE 1024
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     - TYPE : 어떤 서비스 타입의 소켓을 생성할 것인지를 결정합니다. SOCK_DGRAM은 UDP, SOCK_STREAM은 TCP입니다.
     - PROTOCOL : UDP, TCP를 정하는 부분인데 0을 넘기면 그냥 TYPE에서 정한 대로 따라갑니다.
   */
-  int recv_sock = socket(PF_INET, SOCK_DGRAM, 0);
+  int multi_sock = socket(PF_INET, SOCK_DGRAM, 0);
 
   struct sockaddr_in addr; // 소켓 주소에 대한 정보를 담는 구조체입니다.
   memset(&addr, 0, sizeof(addr));
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     - SO_REUSEADDR : 지역 주소(IP 주소, 포트번호)의 재사용을 허용합니다.
   */
   int on = 1;
-  setsockopt(recv_sock, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
+  setsockopt(multi_sock, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
 
   /* 
     bind(SOCKFD, ADDR, ADDRLEN) : IP 주소와 소켓 디스크립터를 묶어서 외부에서 IP로 통신을 시도하는 컴퓨터가 소켓 디스크립터를 찾을 수 있도록 해줍니다. 실패하면 -1을 반환합니다.
@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
     - ADDR : 서버 주소 정보입니다.
     - ADDRLEN : 서버 주소 정보의 크기입니다.
   */
-  if (bind(recv_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1)
+  if (bind(multi_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1)
   {
     printf("bind() error : %d", errno);
-    close(recv_sock);
+    close(multi_sock);
     exit(1);
   }
 
@@ -55,24 +55,25 @@ int main(int argc, char *argv[])
   join_addr.imr_interface.s_addr = htonl(INADDR_ANY);  // 멀티캐스트 패킷을 받을 네트워크 인터페이스를 지정합니다.
 
   // setsockopt로 IP_ADD_MEMBERSHIP을 지정하면 소켓이 join_addr이 나타내는 멀티캐스트 그룹에 가입됩니다.
-  if (setsockopt(recv_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *)&join_addr,
+  if (setsockopt(multi_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (void *)&join_addr,
                  sizeof(join_addr)) < 0)
   {
     printf("setsockopt() join error\n");
-    close(recv_sock);
+    close(multi_sock);
     exit(1);
   }
 
-  char buf[1024];
-  while (1)
+  char server_addr[BUF_SIZE];
+  int len = recvfrom(multi_sock, &server_addr, sizeof(server_addr), 0, NULL, 0);
+  if (len < 0)
   {
-    int str_len = recvfrom(recv_sock, &buf, 1024, 0, NULL, 0);
-    if (str_len < 0)
-      break;
-
-    printf("%s\n", buf);
+    printf("recvfrom() error\n");
+    close(multi_sock);
+    exit(1);
   }
 
-  close(recv_sock);
+  printf("%s\n", server_addr);
+
+  close(multi_sock);
   return 0;
 }

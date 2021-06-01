@@ -89,13 +89,16 @@ struct socket make_multicast_sock(char *addr, int port)
 
 int main(int argc, char *argv[])
 {
-  if (argc != 3)
+  if (argc != 4)
   {
-    printf("Usage : %s <Group IP> <Port>\n", argv[0]);
+    printf("Usage : %s <Group IP> <Own IP> <Port>\n", argv[0]);
     exit(1);
   }
 
-  struct socket serv_sock = make_server_sock(atoi(argv[2]));
+  char server_addr[BUF_SIZE];
+  strcpy(server_addr, argv[2]);
+
+  struct socket serv_sock = make_server_sock(atoi(argv[3]));
 
   if (bind(serv_sock.descriptor, (struct sockaddr *)&serv_sock.addr, sizeof(serv_sock.addr)) == -1)
   {
@@ -109,7 +112,7 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  struct socket multi_sock = make_multicast_sock(argv[1], atoi(argv[2]));
+  struct socket multi_sock = make_multicast_sock(argv[1], atoi(argv[3]));
 
   struct timeval timeout;
   timeout.tv_sec = 1;
@@ -129,8 +132,7 @@ int main(int argc, char *argv[])
     FD_COPY(&read_set_backup, &read_set);
 
     // Heartbeat
-    char to_send[1024] = "Hello";
-    int l = sendto(multi_sock.descriptor, to_send, 1024, 0, (struct sockaddr *)&multi_sock.addr, sizeof(multi_sock.addr));
+    sendto(multi_sock.descriptor, server_addr, sizeof(server_addr), 0, (struct sockaddr *)&multi_sock.addr, sizeof(multi_sock.addr));
 
     int fd_num = select(fd_max + 1, &read_set, 0, 0, &timeout);
     if (fd_num == -1)
