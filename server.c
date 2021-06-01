@@ -8,16 +8,11 @@
 #include <sys/select.h>
 #include <errno.h>
 
-#define BUF_SIZE 1024
+#include "./common.h"
+
 #define MAX_CLIENT_SIZE 1024
 
-// Structs
-
-struct socket
-{
-  int descriptor;
-  struct sockaddr_in addr;
-};
+// Helper functions
 
 struct socket accept_client(struct socket serv_sock)
 {
@@ -33,19 +28,6 @@ struct socket accept_client(struct socket serv_sock)
 
   return result;
 }
-
-struct socket_array
-{
-  struct socket data[MAX_CLIENT_SIZE];
-  uint64_t size;
-};
-
-void push_client_array(struct socket_array *arr, struct socket clnt)
-{
-  arr->data[arr->size++] = clnt;
-}
-
-// Helper functions
 
 struct socket make_server_sock(int port)
 {
@@ -102,14 +84,12 @@ int main(int argc, char *argv[])
 
   if (bind(serv_sock.descriptor, (struct sockaddr *)&serv_sock.addr, sizeof(serv_sock.addr)) == -1)
   {
-    printf("bind() error");
-    exit(0);
+    error_handle("bind() error");
   }
 
   if (listen(serv_sock.descriptor, 5) == -1)
   {
-    printf("listen() error");
-    exit(0);
+    error_handle("listen() error");
   }
 
   struct socket multi_sock = make_multicast_sock(argv[1], atoi(argv[3]));
@@ -137,6 +117,8 @@ int main(int argc, char *argv[])
     int fd_num = select(fd_max + 1, &read_set, 0, 0, &timeout);
     if (fd_num == -1)
     {
+      printf("%d\n", errno);
+      error_handle("select() error");
       break;
     }
     else if (fd_num == 0)
@@ -152,7 +134,7 @@ int main(int argc, char *argv[])
       if (fd_max < clnt.descriptor)
         fd_max = clnt.descriptor;
 
-      push_client_array(&clnt_arr, clnt);
+      push_socket_array(&clnt_arr, clnt);
       printf("Connected client: %d\n", clnt.descriptor);
     }
 
@@ -166,7 +148,7 @@ int main(int argc, char *argv[])
 
         if (str_len == 0) // close request
         {
-          FD_CLR(clnt.descriptor, &read_set);
+          FD_CLR(clnt.descriptor, &read_set_backup);
           close(clnt.descriptor);
           printf("Closed client: %d \n", clnt.descriptor);
         }

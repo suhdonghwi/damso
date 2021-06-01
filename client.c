@@ -6,13 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define BUF_SIZE 1024
-
-void error_handle(char *msg)
-{
-  fputs(msg, stderr);
-  exit(1);
-}
+#include "./common.h"
 
 void receive_server_addr(char *dest, int port, char *multi_addr)
 {
