@@ -24,9 +24,13 @@ struct client accept_client(struct socket serv_sock)
           .addr = addr,
       };
 
+  char name[BUF_SIZE];
+  read(descriptor, name, BUF_SIZE);
+
   struct client result = {
       .sock = sock,
-      .name = "suhdonghwi"};
+      .name = name,
+  };
 
   return result;
 }

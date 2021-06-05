@@ -64,7 +64,7 @@ void receive_server_addr(char *dest, char *multi_addr)
   close(multi_sock);
 }
 
-struct socket make_client_sock(char *server_addr_str)
+struct socket make_client_sock(char *server_addr_str, char name[])
 {
   int descriptor = socket(PF_INET, SOCK_STREAM, 0);
   if (descriptor == -1)
@@ -83,6 +83,8 @@ struct socket make_client_sock(char *server_addr_str)
     error_handle("connect() error");
   }
 
+  write(descriptor, name, BUF_SIZE);
+
   struct socket result = {.descriptor = descriptor, .addr = serv_addr};
   return result;
 }
@@ -100,6 +102,10 @@ int main(int argc, char *argv[])
 
   printf("Received server address : %s\n", server_addr_str);
 
-  struct socket clnt_sock = make_client_sock(server_addr_str);
+  char name[BUF_SIZE];
+  printf("What is your name? : ");
+  scanf("%s", name);
+
+  struct socket clnt_sock = make_client_sock(server_addr_str, name);
   return 0;
 }
