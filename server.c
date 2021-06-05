@@ -156,9 +156,9 @@ int main(int argc, char *argv[])
         {
           FD_CLR(clnt.sock.descriptor, &read_set_backup);
           close(clnt.sock.descriptor);
-          clnt_arr.data[clnt_index].alive = false;
 
           printf("%s(%d) closed\n", clnt.name, clnt.sock.descriptor);
+          free_client(&clnt);
         }
         else
         {

@@ -33,6 +33,12 @@ struct client make_client(struct socket sock, char name[])
   return result;
 }
 
+void free_client(struct client *clnt)
+{
+  clnt->alive = false;
+  free(clnt->name);
+}
+
 struct client_array
 {
   struct client data[MAX_CLIENT_SIZE];
