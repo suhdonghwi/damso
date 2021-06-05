@@ -12,17 +12,21 @@
 
 // Helper functions
 
-struct socket accept_client(struct socket serv_sock)
+struct client accept_client(struct socket serv_sock)
 {
   struct sockaddr_in addr;
   socklen_t addr_size = sizeof(addr);
   int descriptor = accept(serv_sock.descriptor, (struct sockaddr *)&addr, &addr_size);
 
-  struct socket result =
+  struct socket sock =
       {
           .descriptor = descriptor,
           .addr = addr,
       };
+
+  struct client result = {
+      .sock = sock,
+      .name = "suhdonghwi"};
 
   return result;
 }
@@ -106,7 +110,7 @@ int main(int argc, char *argv[])
 
   FD_SET(serv_sock.descriptor, &read_set_backup);
 
-  struct socket_array clnt_arr = {.data = {}, .size = 0};
+  struct client_array clnt_arr = {.data = {}, .size = 0};
   int fd_max = serv_sock.descriptor;
 
   while (1)
@@ -130,29 +134,29 @@ int main(int argc, char *argv[])
 
     if (FD_ISSET(serv_sock.descriptor, &read_set)) // connection request
     {
-      struct socket clnt = accept_client(serv_sock);
+      struct client clnt = accept_client(serv_sock);
 
-      FD_SET(clnt.descriptor, &read_set_backup);
-      if (fd_max < clnt.descriptor)
-        fd_max = clnt.descriptor;
+      FD_SET(clnt.sock.descriptor, &read_set_backup);
+      if (fd_max < clnt.sock.descriptor)
+        fd_max = clnt.sock.descriptor;
 
-      push_socket_array(&clnt_arr, clnt);
-      printf("Connected client: %d\n", clnt.descriptor);
+      push_client_array(&clnt_arr, clnt);
+      printf("Connected client: %d\n", clnt.sock.descriptor);
     }
 
     for (int clnt_index = 0; clnt_index <= clnt_arr.size; clnt_index++)
     {
-      struct socket clnt = clnt_arr.data[clnt_index];
-      if (FD_ISSET(clnt.descriptor, &read_set)) // read message
+      struct client clnt = clnt_arr.data[clnt_index];
+      if (FD_ISSET(clnt.sock.descriptor, &read_set)) // read message
       {
         char received[BUF_SIZE] = {};
-        int str_len = read(clnt.descriptor, received, BUF_SIZE);
+        int str_len = read(clnt.sock.descriptor, received, BUF_SIZE);
 
         if (str_len == 0) // close request
         {
-          FD_CLR(clnt.descriptor, &read_set_backup);
-          close(clnt.descriptor);
-          printf("Closed client : %d\n", clnt.descriptor);
+          FD_CLR(clnt.sock.descriptor, &read_set_backup);
+          close(clnt.sock.descriptor);
+          printf("Closed client : %d\n", clnt.sock.descriptor);
         }
         else
         {

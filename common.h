@@ -13,13 +13,19 @@ struct socket
   struct sockaddr_in addr;
 };
 
-struct socket_array
+struct client
 {
-  struct socket data[MAX_CLIENT_SIZE];
+  struct socket sock;
+  char *name;
+};
+
+struct client_array
+{
+  struct client data[MAX_CLIENT_SIZE];
   uint64_t size;
 };
 
-void push_socket_array(struct socket_array *arr, struct socket clnt)
+void push_client_array(struct client_array *arr, struct client clnt)
 {
   arr->data[arr->size++] = clnt;
 }
