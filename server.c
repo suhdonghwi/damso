@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 #include <errno.h>
+#include <stdbool.h>
 
 #include "./common.h"
 
@@ -27,12 +28,7 @@ struct client accept_client(struct socket serv_sock)
   char name[BUF_SIZE];
   read(descriptor, name, BUF_SIZE);
 
-  struct client result = {
-      .sock = sock,
-      .name = name,
-  };
-
-  return result;
+  return make_client(sock, name);
 }
 
 struct socket make_server_sock()
@@ -145,7 +141,7 @@ int main(int argc, char *argv[])
         fd_max = clnt.sock.descriptor;
 
       push_client_array(&clnt_arr, clnt);
-      printf("Connected client: %d\n", clnt.sock.descriptor);
+      printf("%s(%d) connected\n", clnt.name, clnt.sock.descriptor);
     }
 
     for (int clnt_index = 0; clnt_index <= clnt_arr.size; clnt_index++)
@@ -160,7 +156,9 @@ int main(int argc, char *argv[])
         {
           FD_CLR(clnt.sock.descriptor, &read_set_backup);
           close(clnt.sock.descriptor);
-          printf("Closed client : %d\n", clnt.sock.descriptor);
+          clnt_arr.data[clnt_index].alive = false;
+
+          printf("%s(%d) closed\n", clnt.name, clnt.sock.descriptor);
         }
         else
         {

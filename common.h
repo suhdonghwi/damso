@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdbool.h>
 
 #define BUF_SIZE 1024
 #define MAX_CLIENT_SIZE 1024
@@ -17,7 +18,20 @@ struct client
 {
   struct socket sock;
   char *name;
+  bool alive;
 };
+
+struct client make_client(struct socket sock, char name[])
+{
+  struct client result = {
+      .sock = sock,
+      .name = malloc(BUF_SIZE),
+      .alive = true,
+  };
+
+  strcpy(result.name, name);
+  return result;
+}
 
 struct client_array
 {
