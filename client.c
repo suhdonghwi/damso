@@ -104,7 +104,8 @@ int main(int argc, char *argv[])
 
   char name[BUF_SIZE];
   printf("What is your name? : ");
-  scanf("%s", name);
+  fgets(name, BUF_SIZE, stdin);
+  name[strcspn(name, "\n")] = 0;
 
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
   return 0;
