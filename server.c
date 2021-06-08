@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     for (int clnt_index = 0; clnt_index < clnt_arr.size; clnt_index++)
     {
       struct client *clnt = &clnt_arr.data[clnt_index];
-      if (clnt->alive && FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
+      if (FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
       {
         int code = 0;
         int str_len = read(clnt->sock.descriptor, &code, sizeof(code));
@@ -158,7 +158,8 @@ int main(int argc, char *argv[])
           close(clnt->sock.descriptor);
 
           printf("%s(%d) closed\n", clnt->name, clnt->sock.descriptor);
-          free_client(clnt);
+          remove_client_array(&clnt_arr, clnt_index);
+          clnt_index--;
         }
         else
         {
@@ -170,7 +171,6 @@ int main(int argc, char *argv[])
             for (int i = 0; i < clnt_arr.size; i++)
             {
               write(clnt->sock.descriptor, clnt_arr.data[i].name, BUF_SIZE);
-              write(clnt->sock.descriptor, &clnt_arr.data[i].alive, sizeof(clnt_arr.data[i].alive));
             }
             break;
           }

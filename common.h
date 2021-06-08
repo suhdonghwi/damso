@@ -18,7 +18,6 @@ struct client
 {
   struct socket sock;
   char *name;
-  bool alive;
 };
 
 struct client make_client(struct socket sock, char name[])
@@ -26,7 +25,6 @@ struct client make_client(struct socket sock, char name[])
   struct client result = {
       .sock = sock,
       .name = malloc(BUF_SIZE),
-      .alive = true,
   };
 
   strcpy(result.name, name);
@@ -35,7 +33,6 @@ struct client make_client(struct socket sock, char name[])
 
 void free_client(struct client *clnt)
 {
-  clnt->alive = false;
   free(clnt->name);
 }
 
@@ -48,6 +45,20 @@ struct client_array
 void push_client_array(struct client_array *arr, struct client clnt)
 {
   arr->data[arr->size++] = clnt;
+}
+
+void remove_client_array(struct client_array *arr, int index)
+{
+  char *temp = arr->data[index].name;
+
+  for (int i = index + 1; i < arr->size; i++)
+  {
+    arr->data[i - 1].name = arr->data[i].name;
+    arr->data[i - 1].sock = arr->data[i].sock;
+  }
+
+  free(temp);
+  arr->size--;
 }
 
 void error_handle(char *msg)
