@@ -89,6 +89,34 @@ struct socket make_client_sock(char *server_addr_str, char name[])
   return result;
 }
 
+int get_client_list(struct socket sock, char **list)
+{
+  int code = 1;
+  write(sock.descriptor, &code, sizeof(code));
+
+  int length;
+  read(sock.descriptor, &length, sizeof(length));
+
+  printf("%d\n", length);
+
+  for (int i = 0; i < length; i++)
+  {
+    char name[BUF_SIZE];
+    read(sock.descriptor, name, sizeof(name));
+
+    bool alive;
+    read(sock.descriptor, &alive, sizeof(alive));
+
+    if (alive)
+    {
+      list[i] = malloc(BUF_SIZE);
+      strcpy(list[i], name);
+    }
+  }
+
+  return length;
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)
@@ -108,5 +136,17 @@ int main(int argc, char *argv[])
   name[strcspn(name, "\n")] = 0;
 
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
+
+  char *client_list[MAX_CLIENT_SIZE] = {};
+  int length = get_client_list(clnt_sock, client_list);
+
+  for (int i = 0; i < length; i++)
+  {
+    printf("%d : %s\n", i, client_list[i]);
+  }
+
+  while (1)
+  {
+  }
   return 0;
 }

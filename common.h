@@ -42,7 +42,7 @@ void free_client(struct client *clnt)
 struct client_array
 {
   struct client data[MAX_CLIENT_SIZE];
-  uint64_t size;
+  int size;
 };
 
 void push_client_array(struct client_array *arr, struct client clnt)

@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
       struct client clnt = clnt_arr.data[clnt_index];
       if (FD_ISSET(clnt.sock.descriptor, &read_set)) // read message
       {
-        char received[BUF_SIZE] = {};
-        int str_len = read(clnt.sock.descriptor, received, BUF_SIZE);
+        int code = 0;
+        int str_len = read(clnt.sock.descriptor, &code, sizeof(code));
 
         if (str_len == 0) // close request
         {
@@ -162,14 +162,25 @@ int main(int argc, char *argv[])
         }
         else
         {
-          printf("> CLIENT : %s", received);
+          printf("CODE RECEIVED : %d\n", code);
+          switch (code)
+          {
+          case 1:
+            write(clnt.sock.descriptor, &clnt_arr.size, sizeof(clnt_arr.size));
+            for (int i = 0; i < clnt_arr.size; i++)
+            {
+              write(clnt.sock.descriptor, clnt_arr.data[i].name, BUF_SIZE);
+              write(clnt.sock.descriptor, &clnt_arr.data[i].alive, sizeof(clnt_arr.data[i].alive));
+            }
+            break;
+          }
           /*
-          printf("> SERVER : ");
+            printf("> SERVER : ");
 
-          char message[BUF_SIZE] = {};
-          fgets(message, sizeof(message), stdin);
+            char message[BUF_SIZE] = {};
+            fgets(message, sizeof(message), stdin);
 
-          write(clnt.sock, message, sizeof(message)); // echo
+            write(clnt.sock, message, sizeof(message)); // echo
           */
         }
       }
