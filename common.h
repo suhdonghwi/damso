@@ -53,8 +53,7 @@ void remove_client_array(struct client_array *arr, int index)
 
   for (int i = index + 1; i < arr->size; i++)
   {
-    arr->data[i - 1].name = arr->data[i].name;
-    arr->data[i - 1].sock = arr->data[i].sock;
+    arr->data[i - 1] = arr->data[i];
   }
 
   free(temp);
