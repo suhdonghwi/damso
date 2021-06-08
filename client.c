@@ -97,8 +97,6 @@ int get_client_list(struct socket sock, char **list)
   int length;
   read(sock.descriptor, &length, sizeof(length));
 
-  printf("%d\n", length);
-
   for (int i = 0; i < length; i++)
   {
     char name[BUF_SIZE];
@@ -136,10 +134,14 @@ int main(int argc, char *argv[])
   fgets(name, BUF_SIZE, stdin);
   name[strcspn(name, "\n")] = 0;
 
+  puts("=============================");
+
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
 
   char *client_list[MAX_CLIENT_SIZE] = {};
   int length = get_client_list(clnt_sock, client_list);
+
+  printf("There are %d clients in your area\n", length);
 
   for (int i = 0; i < length; i++)
   {

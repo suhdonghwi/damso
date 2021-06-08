@@ -144,10 +144,10 @@ int main(int argc, char *argv[])
       printf("%s(%d) connected\n", clnt.name, clnt.sock.descriptor);
     }
 
-    for (int clnt_index = 0; clnt_index <= clnt_arr.size; clnt_index++)
+    for (int clnt_index = 0; clnt_index < clnt_arr.size; clnt_index++)
     {
       struct client *clnt = &clnt_arr.data[clnt_index];
-      if (FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
+      if (clnt->alive && FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
       {
         int code = 0;
         int str_len = read(clnt->sock.descriptor, &code, sizeof(code));
@@ -174,14 +174,6 @@ int main(int argc, char *argv[])
             }
             break;
           }
-          /*
-            printf("> SERVER : ");
-
-            char message[BUF_SIZE] = {};
-            fgets(message, sizeof(message), stdin);
-
-            write(clnt.sock, message, sizeof(message)); // echo
-          */
         }
       }
     }
