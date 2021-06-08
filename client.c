@@ -107,6 +107,7 @@ int get_client_list(struct socket sock, char **list)
     bool alive;
     read(sock.descriptor, &alive, sizeof(alive));
 
+    list[i] = NULL;
     if (alive)
     {
       list[i] = malloc(BUF_SIZE);
@@ -142,7 +143,10 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < length; i++)
   {
-    printf("%d : %s\n", i, client_list[i]);
+    if (client_list[i] != NULL)
+    {
+      printf("%d : %s\n", i, client_list[i]);
+    }
   }
 
   while (1)

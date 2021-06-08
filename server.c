@@ -146,19 +146,19 @@ int main(int argc, char *argv[])
 
     for (int clnt_index = 0; clnt_index <= clnt_arr.size; clnt_index++)
     {
-      struct client clnt = clnt_arr.data[clnt_index];
-      if (FD_ISSET(clnt.sock.descriptor, &read_set)) // read message
+      struct client *clnt = &clnt_arr.data[clnt_index];
+      if (FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
       {
         int code = 0;
-        int str_len = read(clnt.sock.descriptor, &code, sizeof(code));
+        int str_len = read(clnt->sock.descriptor, &code, sizeof(code));
 
         if (str_len == 0) // close request
         {
-          FD_CLR(clnt.sock.descriptor, &read_set_backup);
-          close(clnt.sock.descriptor);
+          FD_CLR(clnt->sock.descriptor, &read_set_backup);
+          close(clnt->sock.descriptor);
 
-          printf("%s(%d) closed\n", clnt.name, clnt.sock.descriptor);
-          free_client(&clnt);
+          printf("%s(%d) closed\n", clnt->name, clnt->sock.descriptor);
+          free_client(clnt);
         }
         else
         {
@@ -166,11 +166,11 @@ int main(int argc, char *argv[])
           switch (code)
           {
           case 1:
-            write(clnt.sock.descriptor, &clnt_arr.size, sizeof(clnt_arr.size));
+            write(clnt->sock.descriptor, &clnt_arr.size, sizeof(clnt_arr.size));
             for (int i = 0; i < clnt_arr.size; i++)
             {
-              write(clnt.sock.descriptor, clnt_arr.data[i].name, BUF_SIZE);
-              write(clnt.sock.descriptor, &clnt_arr.data[i].alive, sizeof(clnt_arr.data[i].alive));
+              write(clnt->sock.descriptor, clnt_arr.data[i].name, BUF_SIZE);
+              write(clnt->sock.descriptor, &clnt_arr.data[i].alive, sizeof(clnt_arr.data[i].alive));
             }
             break;
           }
