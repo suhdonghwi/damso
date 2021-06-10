@@ -73,6 +73,22 @@ struct socket make_multicast_sock(char *addr)
   return result;
 }
 
+void send_client_list(struct client_array *arr)
+{
+  int code = 1;
+  for (int i = 0; i < arr->size; i++)
+  {
+    struct client clnt = arr->data[i];
+
+    write(clnt.sock.descriptor, &code, sizeof(code));
+    write(clnt.sock.descriptor, &arr->size, sizeof(arr->size));
+    for (int j = 0; j < arr->size; j++)
+    {
+      write(clnt.sock.descriptor, arr->data[j].name, BUF_SIZE);
+    }
+  }
+}
+
 // Main
 
 int main(int argc, char *argv[])
@@ -142,6 +158,8 @@ int main(int argc, char *argv[])
 
       push_client_array(&clnt_arr, clnt);
       printf("%s(%d) connected\n", clnt.name, clnt.sock.descriptor);
+
+      send_client_list(&clnt_arr);
     }
 
     for (int clnt_index = 0; clnt_index < clnt_arr.size; clnt_index++)
@@ -160,20 +178,11 @@ int main(int argc, char *argv[])
           printf("%s(%d) closed\n", clnt->name, clnt->sock.descriptor);
           remove_client_array(&clnt_arr, clnt_index);
           clnt_index--;
+
+          send_client_list(&clnt_arr);
         }
         else
         {
-          printf("CODE RECEIVED : %d\n", code);
-          switch (code)
-          {
-          case 1:
-            write(clnt->sock.descriptor, &clnt_arr.size, sizeof(clnt_arr.size));
-            for (int i = 0; i < clnt_arr.size; i++)
-            {
-              write(clnt->sock.descriptor, clnt_arr.data[i].name, BUF_SIZE);
-            }
-            break;
-          }
         }
       }
     }

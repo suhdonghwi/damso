@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "./common.h"
 
@@ -109,6 +110,15 @@ int get_client_list(struct socket sock, char **list)
   return length;
 }
 
+struct data
+{
+  char *client_list[MAX_CLIENT_SIZE];
+};
+
+void *get_code(struct data *data)
+{
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)
@@ -126,22 +136,40 @@ int main(int argc, char *argv[])
   printf("What is your name? : ");
   fgets(name, BUF_SIZE, stdin);
   name[strcspn(name, "\n")] = 0;
-
   system("clear");
 
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
 
-  char *client_list[MAX_CLIENT_SIZE] = {};
-  int length = get_client_list(clnt_sock, client_list);
-  printf("There are %d clients in your area :\n", length);
+  pthread_t thread;
 
-  for (int i = 0; i < length; i++)
-  {
-    printf("  %d. %s\n", i, client_list[i]);
-  }
+  char *client_list[MAX_CLIENT_SIZE] = {};
+  //int length = get_client_list(clnt_sock, client_list);
 
   while (1)
   {
+    int code;
+    read(clnt_sock.descriptor, &code, sizeof(code));
+    printf("Received code : %d\n", code);
+
+    switch (code)
+    {
+    case 1:
+    {
+      int length;
+      read(clnt_sock.descriptor, &length, sizeof(length));
+      printf("client length : %d\n", length);
+
+      for (int i = 0; i < length; i++)
+      {
+        char *name = malloc(BUF_SIZE);
+        read(clnt_sock.descriptor, name, BUF_SIZE);
+
+        printf("%d. %s\n", i, name);
+      }
+
+      break;
+    }
+    }
   }
   return 0;
 }
