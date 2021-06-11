@@ -8,10 +8,12 @@
 #include <pthread.h>
 
 #include "./common.h"
+#include "termbox.h"
 
 void receive_server_addr(char *dest, char *multi_addr)
 {
   /* 
+  
     socket(DOMAIN, TYPE, PROTOCOL): 소켓을 생성하고 소켓 디스크립터를 반환합니다.
     - DOMAIN : 어떤 영역에서 통신할 것인지를 결정합니다. PF_INET은 IPv4를 의미합니다.
     - TYPE : 어떤 서비스 타입의 소켓을 생성할 것인지를 결정합니다. SOCK_DGRAM은 UDP, SOCK_STREAM은 TCP입니다.
@@ -90,26 +92,6 @@ struct socket make_client_sock(char *server_addr_str, char name[])
   return result;
 }
 
-int get_client_list(struct socket sock, char **list)
-{
-  int code = 1;
-  write(sock.descriptor, &code, sizeof(code));
-
-  int length;
-  read(sock.descriptor, &length, sizeof(length));
-
-  for (int i = 0; i < length; i++)
-  {
-    char name[BUF_SIZE];
-    read(sock.descriptor, name, sizeof(name));
-
-    list[i] = malloc(BUF_SIZE);
-    strcpy(list[i], name);
-  }
-
-  return length;
-}
-
 struct chat_status
 {
   char **client_list;
@@ -174,6 +156,7 @@ int main(int argc, char *argv[])
   printf("Received server address : %s\n", server_addr_str);
 
   char name[BUF_SIZE];
+
   printf("What is your name? : ");
   fgets(name, BUF_SIZE, stdin);
   name[strcspn(name, "\n")] = 0;
