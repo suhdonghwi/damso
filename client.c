@@ -112,11 +112,52 @@ int get_client_list(struct socket sock, char **list)
 
 struct data
 {
-  char *client_list[MAX_CLIENT_SIZE];
+  char **client_list;
+  int client_length;
+  struct socket *sock;
 };
 
-void *get_code(struct data *data)
+void *get_code(void *payload)
 {
+  struct data *data = (struct data *)payload;
+  while (1)
+  {
+    int code;
+    read(data->sock->descriptor, &code, sizeof(code));
+    printf("RECEIVED CODE : %d\n", code);
+
+    switch (code)
+    {
+    case 1:
+    {
+      int length;
+      read(data->sock->descriptor, &length, sizeof(length));
+
+      if (data->client_length != 0)
+      {
+        for (int i = 0; i < data->client_length; i++)
+        {
+          free(data->client_list[i]);
+        }
+
+        free(data->client_list);
+      }
+
+      data->client_length = length;
+      data->client_list = malloc(sizeof(char *) * length);
+
+      for (int i = 0; i < length; i++)
+      {
+        char *name = malloc(BUF_SIZE);
+        read(data->sock->descriptor, name, BUF_SIZE);
+
+        data->client_list[i] = name;
+      }
+
+      break;
+    }
+    }
+  }
 }
 
 int main(int argc, char *argv[])
@@ -143,33 +184,20 @@ int main(int argc, char *argv[])
   pthread_t thread;
 
   char *client_list[MAX_CLIENT_SIZE] = {};
-  //int length = get_client_list(clnt_sock, client_list);
+  struct data data = {.client_list = client_list, .client_length = 0, .sock = &clnt_sock};
+
+  pthread_create(&thread, NULL, get_code, (void *)&data);
 
   while (1)
   {
-    int code;
-    read(clnt_sock.descriptor, &code, sizeof(code));
-    printf("Received code : %d\n", code);
-
-    switch (code)
+    for (int i = 0; i < data.client_length; i++)
     {
-    case 1:
-    {
-      int length;
-      read(clnt_sock.descriptor, &length, sizeof(length));
-      printf("client length : %d\n", length);
-
-      for (int i = 0; i < length; i++)
-      {
-        char *name = malloc(BUF_SIZE);
-        read(clnt_sock.descriptor, name, BUF_SIZE);
-
-        printf("%d. %s\n", i, name);
-      }
-
-      break;
-    }
+      printf("%d. %s\n", i, data.client_list[i]);
     }
   }
+
+  int status;
+  pthread_join(thread, (void **)&status); //6
+
   return 0;
 }
