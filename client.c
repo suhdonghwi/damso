@@ -110,7 +110,7 @@ int get_client_list(struct socket sock, char **list)
   return length;
 }
 
-struct data
+struct chat_status
 {
   char **client_list;
   int client_length;
@@ -119,11 +119,11 @@ struct data
 
 void *get_code(void *payload)
 {
-  struct data *data = (struct data *)payload;
+  struct chat_status *status = (struct chat_status *)payload;
   while (1)
   {
     int code;
-    read(data->sock->descriptor, &code, sizeof(code));
+    read(status->sock->descriptor, &code, sizeof(code));
     printf("RECEIVED CODE : %d\n", code);
 
     switch (code)
@@ -131,27 +131,27 @@ void *get_code(void *payload)
     case 1:
     {
       int length;
-      read(data->sock->descriptor, &length, sizeof(length));
+      read(status->sock->descriptor, &length, sizeof(length));
 
-      if (data->client_length != 0)
+      if (status->client_length != 0)
       {
-        for (int i = 0; i < data->client_length; i++)
+        for (int i = 0; i < status->client_length; i++)
         {
-          free(data->client_list[i]);
+          free(status->client_list[i]);
         }
 
-        free(data->client_list);
+        free(status->client_list);
       }
 
-      data->client_length = length;
-      data->client_list = malloc(sizeof(char *) * length);
+      status->client_length = length;
+      status->client_list = malloc(sizeof(char *) * length);
 
       for (int i = 0; i < length; i++)
       {
         char *name = malloc(BUF_SIZE);
-        read(data->sock->descriptor, name, BUF_SIZE);
+        read(status->sock->descriptor, name, BUF_SIZE);
 
-        data->client_list[i] = name;
+        status->client_list[i] = name;
       }
 
       break;
@@ -184,20 +184,17 @@ int main(int argc, char *argv[])
   pthread_t thread;
 
   char *client_list[MAX_CLIENT_SIZE] = {};
-  struct data data = {.client_list = client_list, .client_length = 0, .sock = &clnt_sock};
+  struct chat_status chat_status = {.client_list = client_list, .client_length = 0, .sock = &clnt_sock};
 
-  pthread_create(&thread, NULL, get_code, (void *)&data);
+  pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
   while (1)
   {
-    for (int i = 0; i < data.client_length; i++)
+    for (int i = 0; i < chat_status.client_length; i++)
     {
-      printf("%d. %s\n", i, data.client_list[i]);
+      printf("%d. %s\n", i, chat_status.client_list[i]);
     }
   }
-
-  int status;
-  pthread_join(thread, (void **)&status); //6
 
   return 0;
 }
