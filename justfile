@@ -1,5 +1,5 @@
 client:
-	gcc client.c -o client -L./termbox/lib -I./termbox/include
+	gcc client.c -o client -I ./termbox/include ./termbox/lib/libtermbox.a
 	./client 239.0.140.1 5000
 
 server:

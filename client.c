@@ -7,8 +7,10 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "./common.h"
 #include "termbox.h"
+
+#include "./common.h"
+#include "./ui.h"
 
 void receive_server_addr(char *dest, char *multi_addr)
 {
@@ -142,6 +144,32 @@ void *get_code(void *payload)
   }
 }
 
+void scene_name_input()
+{
+  tb_clear();
+  char message[] = "What is your name?";
+
+  struct tb_event ev;
+  while (tb_poll_event(&ev))
+  {
+    switch (ev.type)
+    {
+    case TB_EVENT_KEY:
+      if (ev.key == TB_KEY_CTRL_Q)
+      {
+        tb_shutdown();
+        exit(0);
+      }
+      else
+      {
+        ui_print(10, 10, "HELLO");
+      }
+    }
+
+    tb_present();
+  }
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)
@@ -154,6 +182,10 @@ int main(int argc, char *argv[])
   receive_server_addr(server_addr_str, argv[1]);
 
   printf("Received server address : %s\n", server_addr_str);
+
+  tb_init();
+
+  scene_name_input();
 
   char name[BUF_SIZE];
 
@@ -175,7 +207,7 @@ int main(int argc, char *argv[])
   {
     for (int i = 0; i < chat_status.client_length; i++)
     {
-      printf("%d. %s\n", i, chat_status.client_list[i]);
+      //printf("%d. %s\n", i, chat_status.client_list[i]);
     }
   }
 
