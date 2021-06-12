@@ -220,6 +220,10 @@ void scene_name_input(char *output)
   }
 }
 
+void scene_chat_list(char **client_list, int *client_length)
+{
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)

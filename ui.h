@@ -36,3 +36,23 @@ int ui_print_center(int y, char *str, uint16_t fg, uint16_t bg)
 
 	return start;
 }
+
+void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
+{
+	tb_change_cell(left, top, u'┌', fg, TB_DEFAULT);
+	tb_change_cell(right, top, u'┐', fg, TB_DEFAULT);
+	tb_change_cell(right, bottom, u'┘', fg, TB_DEFAULT);
+	tb_change_cell(left, bottom, u'└', fg, TB_DEFAULT);
+
+	for (int x = left + 1; x < right; x++)
+	{
+		tb_change_cell(x, top, u'─', fg, TB_DEFAULT);
+		tb_change_cell(x, bottom, u'─', fg, TB_DEFAULT);
+	}
+
+	for (int y = top + 1; y < bottom; y++)
+	{
+		tb_change_cell(left, y, u'│', fg, TB_DEFAULT);
+		tb_change_cell(right, y, u'│', fg, TB_DEFAULT);
+	}
+}
