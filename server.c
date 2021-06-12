@@ -85,7 +85,7 @@ void send_client_list(struct client_array *arr)
     for (int j = 0; j < arr->size; j++)
     {
       write(clnt.sock.descriptor, arr->list[j].data.name, BUF_SIZE);
-      //write(clnt.sock.descriptor, &arr->list[j].data.opponent, sizeof(int));
+      write(clnt.sock.descriptor, &arr->list[j].data.opponent, sizeof(int));
     }
   }
 }

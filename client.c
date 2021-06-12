@@ -78,7 +78,7 @@ struct socket make_client_sock(char *server_addr_str, char name[])
 
 struct chat_status
 {
-  char **client_list;
+  struct client_data *client_list;
   int client_length;
   char *name;
   struct socket *sock;
@@ -104,21 +104,25 @@ void *get_code(void *payload)
       {
         for (int i = 0; i < status->client_length; i++)
         {
-          free(status->client_list[i]);
+          free(status->client_list[i].name);
         }
 
         free(status->client_list);
       }
 
       status->client_length = length;
-      status->client_list = malloc(sizeof(char *) * length);
+      status->client_list = malloc(sizeof(struct client_data) * length);
 
       for (int i = 0; i < length; i++)
       {
         char *name = malloc(BUF_SIZE);
         read(status->sock->descriptor, name, BUF_SIZE);
 
-        status->client_list[i] = name;
+        int opponent;
+        read(status->sock->descriptor, &opponent, sizeof(int));
+
+        struct client_data data = {.name = name, .opponent = opponent};
+        status->client_list[i] = data;
       }
 
       break;
@@ -250,14 +254,14 @@ void scene_chat_list(struct chat_status *status, int *to_chat)
     {
       char item[BUF_SIZE] = "";
 
-      char *name = status->client_list[i];
-      if (strlen(name) > 24)
+      struct client_data data = status->client_list[i];
+      if (strlen(data.name) > 24)
       {
-        sprintf(item, "%d. %.21s...", i, name);
+        sprintf(item, "%d. %.21s...", i, data.name);
       }
       else
       {
-        sprintf(item, "%d. %s", i, status->client_list[i]);
+        sprintf(item, "%d. %s", i, data.name);
       }
 
       ui_print(rect_left + 2,
@@ -324,7 +328,7 @@ int main(int argc, char *argv[])
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
 
   pthread_t thread;
-  char *client_list[MAX_CLIENT_SIZE] = {};
+  struct client_data *client_list = NULL;
   struct chat_status chat_status = {
       .client_list = client_list,
       .client_length = 0,
