@@ -155,11 +155,16 @@ void scene_name_input(char *output)
   struct tb_event ev;
   while (1)
   {
-    sprintf(answer, "A. My name is [%s]", name);
+    sprintf(answer, "A. My name is %s", name);
 
     int answer_line_no = tb_height() / 2 + 2;
     tb_clear_line(answer_line_no);
-    ui_print_center(answer_line_no, answer, TB_WHITE, TB_DEFAULT);
+    int start = ui_print_center(answer_line_no, answer, TB_WHITE, TB_DEFAULT);
+
+    for (int x = start + 14; x < start + 14 + strlen(name); x++)
+    {
+      tb_change_cell_style(x, answer_line_no, TB_GREEN | TB_UNDERLINE | TB_BOLD, TB_DEFAULT);
+    }
 
     tb_clear_line(answer_line_no + 2);
     ui_print_center(answer_line_no + 2, error_message, TB_RED, TB_DEFAULT);
