@@ -230,6 +230,8 @@ void scene_chat_list(struct chat_status *status)
   char message[BUF_SIZE] = "";
   sprintf(message, "Hello, %s. Select a person to chat with!", status->name);
 
+  int selection = 0;
+
   struct tb_event ev;
   while (1)
   {
@@ -239,6 +241,11 @@ void scene_chat_list(struct chat_status *status)
             rect_left + rect_width,
             TB_WHITE);
 
+    if (status->client_length > 0 && selection >= status->client_length)
+    {
+      selection = status->client_length - 1;
+    }
+
     for (int i = 0; i < status->client_length; i++)
     {
       char item[BUF_SIZE] = "";
@@ -246,14 +253,17 @@ void scene_chat_list(struct chat_status *status)
       char *name = status->client_list[i];
       if (strlen(name) > 24)
       {
-        sprintf(item, " %d. %.21s...", i, name);
+        sprintf(item, "%d. %.21s...", i, name);
       }
       else
       {
-        sprintf(item, " %d. %s", i, status->client_list[i]);
+        sprintf(item, "%d. %s", i, status->client_list[i]);
       }
 
-      ui_print(rect_left + 1, rect_top + i + 1, item, TB_WHITE, TB_DEFAULT);
+      ui_print(rect_left + 2,
+               rect_top + i + 1, item,
+               i == selection ? TB_BLACK : TB_WHITE,
+               i == selection ? TB_GREEN : TB_DEFAULT);
     }
 
     ui_print_center(rect_top - 2, message, TB_WHITE, TB_DEFAULT);
@@ -268,6 +278,20 @@ void scene_chat_list(struct chat_status *status)
         {
           tb_shutdown();
           exit(0);
+        }
+        else if (ev.key == TB_KEY_ARROW_DOWN)
+        {
+          if (selection < status->client_length - 1)
+          {
+            selection++;
+          }
+        }
+        else if (ev.key == TB_KEY_ARROW_UP)
+        {
+          if (selection > 0)
+          {
+            selection--;
+          }
         }
       }
     }
