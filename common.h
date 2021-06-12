@@ -16,6 +16,7 @@ struct socket
 
 struct client_data
 {
+  int uid;
   char *name;
   int opponent;
 };
@@ -28,11 +29,13 @@ struct client
 
 struct client make_client(struct socket sock, char name[])
 {
+  static int uid_count = 0;
   struct client result = {
       .sock = sock,
       .data = {
           .name = malloc(BUF_SIZE),
           .opponent = -1,
+          .uid = uid_count++,
       }};
 
   strcpy(result.data.name, name);

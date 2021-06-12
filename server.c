@@ -184,6 +184,36 @@ int main(int argc, char *argv[])
         }
         else
         {
+          switch (code)
+          {
+          case 1: // Pairing request
+          {
+            puts("Pairing request");
+            int opponent;
+            read(clnt->sock.descriptor, &opponent, sizeof(opponent));
+            printf("Op : %d\n", opponent);
+
+            int response;
+            if (opponent == clnt_index)
+            {
+              response = 0; // Can't pair with yourself :)
+            }
+            else if (clnt_arr.list[opponent].data.opponent != -1)
+            {
+              response = 1; // Opponent is busy
+            }
+            else
+            {
+              response = 2; // Ok, pairing now
+
+              clnt->data.opponent = clnt_arr.list[opponent].data.uid;
+              clnt_arr.list[opponent].data.opponent = clnt->data.uid;
+            }
+
+            write(clnt->sock.descriptor, &response, sizeof(response));
+            break;
+          }
+          }
         }
       }
     }

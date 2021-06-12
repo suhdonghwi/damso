@@ -224,7 +224,7 @@ void scene_name_input(char *output)
   }
 }
 
-void scene_chat_list(struct chat_status *status, int *target_opponent)
+void scene_chat_list(struct chat_status *status, int *result)
 {
   tb_clear();
 
@@ -287,7 +287,11 @@ void scene_chat_list(struct chat_status *status, int *target_opponent)
         }
         else if (ev.key == TB_KEY_ENTER)
         {
-          *target_opponent = selection;
+          int code = 1;
+          write(status->sock->descriptor, &code, sizeof(code));
+          write(status->sock->descriptor, &selection, sizeof(selection));
+
+          read(status->sock->descriptor, result, sizeof(int));
           return;
         }
         else if (ev.key == TB_KEY_ARROW_DOWN)
@@ -340,11 +344,11 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
-  int target_opponent = 0;
-  scene_chat_list(&chat_status, &target_opponent);
+  int result = 0;
+  scene_chat_list(&chat_status, &result);
 
   tb_shutdown();
-  printf("%s -> %d\n", name, target_opponent);
+  printf("%d\n", result);
 
   /*
   while (1)
