@@ -11,9 +11,14 @@ void tb_clear_line(int y)
 	}
 }
 
-void tb_change_cell_style(int x, int y, uint16_t fg, uint16_t bg)
+void tb_change_cell_style(int x_from, int x_to, int y, uint16_t fg, uint16_t bg)
 {
-	tb_change_cell(x, y, tb_cell_buffer()[y * tb_width() + x].ch, fg, bg);
+	struct tb_cell *buf = tb_cell_buffer() + (y * tb_width() + x_from);
+	for (int x = x_from; x <= x_to; x++)
+	{
+		tb_change_cell(x, y, buf->ch, fg, bg);
+		buf++;
+	}
 }
 
 void ui_print(int x, int y, char *str, uint16_t fg, uint16_t bg)
