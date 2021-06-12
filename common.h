@@ -8,6 +8,9 @@
 #define MAX_CLIENT_SIZE 1024
 #define PORT 5000
 
+const int CODE_CLIENT_LIST = 0;
+const int CODE_PAIRING = 1;
+
 struct socket
 {
   int descriptor;

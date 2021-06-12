@@ -75,12 +75,11 @@ struct socket make_multicast_sock(char *addr)
 
 void send_client_list(struct client_array *arr)
 {
-  int code = 1;
   for (int i = 0; i < arr->size; i++)
   {
     struct client clnt = arr->list[i];
 
-    write(clnt.sock.descriptor, &code, sizeof(code));
+    write(clnt.sock.descriptor, &CODE_CLIENT_LIST, sizeof(int));
     write(clnt.sock.descriptor, &arr->size, sizeof(arr->size));
     for (int j = 0; j < arr->size; j++)
     {
@@ -186,12 +185,10 @@ int main(int argc, char *argv[])
         {
           switch (code)
           {
-          case 1: // Pairing request
+          case CODE_PAIRING: // Pairing request
           {
-            puts("Pairing request");
             int opponent;
             read(clnt->sock.descriptor, &opponent, sizeof(opponent));
-            printf("Op : %d\n", opponent);
 
             int response;
             if (opponent == clnt_index)
@@ -210,7 +207,8 @@ int main(int argc, char *argv[])
               clnt_arr.list[opponent].data.opponent = clnt->data.uid;
             }
 
-            write(clnt->sock.descriptor, &response, sizeof(response));
+            write(clnt->sock.descriptor, &CODE_PAIRING, sizeof(int));
+            write(clnt->sock.descriptor, &response, sizeof(int));
             break;
           }
           }

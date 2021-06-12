@@ -82,7 +82,25 @@ struct chat_status
   int client_length;
   char *name;
   struct socket *sock;
+
+  void *response;
 };
+
+void *wait_response(struct chat_status *status)
+{
+  while (status->response == NULL)
+  {
+    usleep(1000);
+  }
+
+  return status->response;
+}
+
+void free_response(struct chat_status *status)
+{
+  free(status->response);
+  status->response = NULL;
+}
 
 void *get_code(void *payload)
 {
@@ -95,7 +113,7 @@ void *get_code(void *payload)
 
     switch (code)
     {
-    case 1:
+    case CODE_CLIENT_LIST:
     {
       int length;
       read(status->sock->descriptor, &length, sizeof(length));
@@ -125,6 +143,14 @@ void *get_code(void *payload)
         status->client_list[i] = data;
       }
 
+      break;
+    }
+    case CODE_PAIRING:
+    {
+      int *response = malloc(sizeof(int));
+      read(status->sock->descriptor, response, sizeof(int));
+
+      status->response = response;
       break;
     }
     }
@@ -233,6 +259,7 @@ void scene_chat_list(struct chat_status *status, int *result)
 
   char message[BUF_SIZE] = "";
   sprintf(message, "Hello, %s. Select a person to chat with!", status->name);
+  char error_message[BUF_SIZE] = "";
 
   int selection = 0;
 
@@ -273,6 +300,11 @@ void scene_chat_list(struct chat_status *status, int *result)
     }
 
     ui_print_center(rect_top - 2, message, 0x07, TB_DEFAULT);
+
+    int error_message_line = rect_top + rect_height + 2;
+    tb_clear_line(error_message_line);
+    ui_print_center(error_message_line, error_message, 0x01, TB_DEFAULT);
+
     tb_present();
 
     if (tb_peek_event(&ev, 10))
@@ -291,8 +323,20 @@ void scene_chat_list(struct chat_status *status, int *result)
           write(status->sock->descriptor, &code, sizeof(code));
           write(status->sock->descriptor, &selection, sizeof(selection));
 
-          read(status->sock->descriptor, result, sizeof(int));
-          return;
+          int *response = wait_response(status);
+          //read(status->sock->descriptor, &response, 1);
+
+          switch (*response)
+          {
+          case 0:
+            strcpy(error_message, "You can't chat with yourself");
+            break;
+          case 1:
+            strcpy(error_message, "Opponent is busy");
+            break;
+          }
+
+          free_response(status);
         }
         else if (ev.key == TB_KEY_ARROW_DOWN)
         {
@@ -340,7 +384,9 @@ int main(int argc, char *argv[])
       .client_list = client_list,
       .client_length = 0,
       .name = name,
-      .sock = &clnt_sock};
+      .sock = &clnt_sock,
+      .response = NULL,
+  };
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
