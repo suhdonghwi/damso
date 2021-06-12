@@ -242,7 +242,17 @@ void scene_chat_list(struct chat_status *status)
     for (int i = 0; i < status->client_length; i++)
     {
       char item[BUF_SIZE] = "";
-      sprintf(item, " %d. %s", i, status->client_list[i]);
+
+      char *name = status->client_list[i];
+      if (strlen(name) > 24)
+      {
+        sprintf(item, " %d. %.21s...", i, name);
+      }
+      else
+      {
+        sprintf(item, " %d. %s", i, status->client_list[i]);
+      }
+
       ui_print(rect_left + 1, rect_top + i + 1, item, TB_WHITE, TB_DEFAULT);
     }
 
