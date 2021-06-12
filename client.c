@@ -198,7 +198,6 @@ void scene_name_input(char *output)
 
     tb_clear_line(answer_line_no + 2);
     ui_print_center(answer_line_no + 2, error_message, 0x01, TB_DEFAULT);
-
     tb_present();
 
     if (tb_poll_event(&ev))

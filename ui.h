@@ -64,3 +64,75 @@ void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
 		}
 	}
 }
+
+int ui_dialog(int width, int height, char *content, char *left, char *right)
+{
+	int rect_top = (tb_height() - height) / 2, rect_left = (tb_width() - width) / 2;
+	ui_rect(rect_top,
+					rect_top + height,
+					rect_left,
+					rect_left + width,
+					0x07);
+
+	char buf[BUF_SIZE], *tmp = content;
+	for (int i = 0;; i++)
+	{
+		int to_copy = width - 4;
+
+		memset(buf, '\0', BUF_SIZE);
+		strncpy(buf, content, to_copy);
+		ui_print_center(rect_top + 2 + i, buf, 0x07, TB_DEFAULT);
+
+		content += to_copy;
+		if (content - tmp >= strlen(tmp))
+		{
+			break;
+		}
+	}
+
+	int margin = (width - strlen(left) - strlen(right)) / 3,
+			selection_line = rect_top + height - 2;
+	char selections[BUF_SIZE] = "";
+	sprintf(selections, "%s%*c%s", left, margin, ' ', right);
+	int start = ui_print_center(selection_line, selections, 0x07, TB_DEFAULT);
+
+	int selection = 0;
+	struct tb_event ev;
+
+	do
+	{
+		switch (ev.type)
+		{
+		case TB_EVENT_KEY:
+			if (ev.key == TB_KEY_ARROW_RIGHT && selection == 0)
+			{
+				selection = 1;
+			}
+			else if (ev.key == TB_KEY_ARROW_LEFT && selection == 1)
+			{
+				selection = 0;
+			}
+			else if (ev.key == TB_KEY_ENTER)
+			{
+				return selection;
+			}
+			break;
+		}
+
+		if (selection == 0)
+		{
+			tb_change_cell_style(start - 1, start + strlen(left), selection_line, 0xe8, 0x02);
+			tb_change_cell_style(start + strlen(left) + margin - 1,
+													 start + strlen(left) + margin + strlen(right),
+													 selection_line, 0x07, TB_DEFAULT);
+		}
+		else
+		{
+			tb_change_cell_style(start - 1, start + strlen(left), selection_line, 0x07, TB_DEFAULT);
+			tb_change_cell_style(start + strlen(left) + margin - 1,
+													 start + strlen(left) + margin + strlen(right),
+													 selection_line, 0xe8, 0x02);
+		}
+		tb_present();
+	} while (tb_poll_event(&ev));
+}
