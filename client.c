@@ -146,11 +146,11 @@ void scene_name_input(char *output)
 
   for (int i = 0; i < 6; i++)
   {
-    ui_print_center(tb_height() / 2 - 8 + i, logo[i], TB_MAGENTA | TB_BOLD, TB_DEFAULT);
+    ui_print_center(tb_height() / 2 - 8 + i, logo[i], 0x05 | TB_BOLD, TB_DEFAULT);
   }
 
   char question[] = "Q. What is your name?";
-  ui_print_center(tb_height() / 2, question, TB_WHITE, TB_DEFAULT);
+  ui_print_center(tb_height() / 2, question, 0x07, TB_DEFAULT);
 
   char name[BUF_SIZE] = "";
   char answer[BUF_SIZE] = "";
@@ -163,15 +163,15 @@ void scene_name_input(char *output)
 
     int answer_line_no = tb_height() / 2 + 2;
     tb_clear_line(answer_line_no);
-    int start = ui_print_center(answer_line_no, answer, TB_WHITE, TB_DEFAULT);
+    int start = ui_print_center(answer_line_no, answer, 0x07, TB_DEFAULT);
 
     tb_change_cell_style(start + 14,
                          start + 14 + strlen(name) - 1,
                          answer_line_no,
-                         TB_GREEN | TB_UNDERLINE | TB_BOLD, TB_DEFAULT);
+                         0x02 | TB_UNDERLINE | TB_BOLD, TB_DEFAULT);
 
     tb_clear_line(answer_line_no + 2);
-    ui_print_center(answer_line_no + 2, error_message, TB_RED, TB_DEFAULT);
+    ui_print_center(answer_line_no + 2, error_message, 0x01, TB_DEFAULT);
 
     tb_present();
 
@@ -224,7 +224,7 @@ void scene_name_input(char *output)
   }
 }
 
-void scene_chat_list(struct chat_status *status, int *to_chat)
+void scene_chat_list(struct chat_status *status, int *target_opponent)
 {
   tb_clear();
 
@@ -243,7 +243,7 @@ void scene_chat_list(struct chat_status *status, int *to_chat)
             rect_top + rect_height,
             rect_left,
             rect_left + rect_width,
-            TB_WHITE);
+            0x07);
 
     if (status->client_length > 0 && selection >= status->client_length)
     {
@@ -264,13 +264,15 @@ void scene_chat_list(struct chat_status *status, int *to_chat)
         sprintf(item, "%d. %s", i, data.name);
       }
 
+      uint16_t fg = i == selection ? 0xe8 : (data.opponent == -1 ? 0x07 : 0xf1);
+      uint16_t bg = i == selection ? 0x02 : TB_DEFAULT;
       ui_print(rect_left + 2,
                rect_top + i + 1, item,
-               i == selection ? TB_BLACK : TB_WHITE,
-               i == selection ? TB_GREEN : TB_DEFAULT);
+               fg,
+               bg);
     }
 
-    ui_print_center(rect_top - 2, message, TB_WHITE, TB_DEFAULT);
+    ui_print_center(rect_top - 2, message, 0x07, TB_DEFAULT);
     tb_present();
 
     if (tb_peek_event(&ev, 10))
@@ -285,7 +287,7 @@ void scene_chat_list(struct chat_status *status, int *to_chat)
         }
         else if (ev.key == TB_KEY_ENTER)
         {
-          *to_chat = selection;
+          *target_opponent = selection;
           return;
         }
         else if (ev.key == TB_KEY_ARROW_DOWN)
@@ -321,6 +323,7 @@ int main(int argc, char *argv[])
   printf("Received server address : %s\n", server_addr_str);
 
   tb_init();
+  tb_select_output_mode(TB_OUTPUT_256);
 
   char name[BUF_SIZE] = "";
   scene_name_input(name);
@@ -337,13 +340,13 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
-  int to_chat = 0;
-  scene_chat_list(&chat_status, &to_chat);
+  int target_opponent = 0;
+  scene_chat_list(&chat_status, &target_opponent);
 
   tb_shutdown();
-  printf("%s -> %d\n", name, to_chat);
-  /*
+  printf("%s -> %d\n", name, target_opponent);
 
+  /*
   while (1)
   {
     for (int i = 0; i < chat_status.client_length; i++)
