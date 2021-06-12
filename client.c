@@ -220,7 +220,7 @@ void scene_name_input(char *output)
   }
 }
 
-void scene_chat_list(struct chat_status *status)
+void scene_chat_list(struct chat_status *status, int *to_chat)
 {
   tb_clear();
 
@@ -279,6 +279,11 @@ void scene_chat_list(struct chat_status *status)
           tb_shutdown();
           exit(0);
         }
+        else if (ev.key == TB_KEY_ENTER)
+        {
+          *to_chat = selection;
+          return;
+        }
         else if (ev.key == TB_KEY_ARROW_DOWN)
         {
           if (selection < status->client_length - 1)
@@ -328,10 +333,11 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
-  scene_chat_list(&chat_status);
+  int to_chat = 0;
+  scene_chat_list(&chat_status, &to_chat);
 
   tb_shutdown();
-  puts(name);
+  printf("%s -> %d\n", name, to_chat);
   /*
 
   while (1)
