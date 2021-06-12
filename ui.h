@@ -110,21 +110,15 @@ int ui_dialog(int width, int height, char *content, char *left, char *right)
 
 	while (1)
 	{
-		if (selection == 0)
-		{
-			//fix to length based
-			tb_change_cell_style(start - 1, strlen(left) + 2, selection_line, 0xe8, 0x02);
-			tb_change_cell_style(start + strlen(left) + margin - 1,
-													 strlen(right) + 2,
-													 selection_line, 0x07, TB_DEFAULT);
-		}
-		else
-		{
-			tb_change_cell_style(start - 1, strlen(left) + 2, selection_line, 0x07, TB_DEFAULT);
-			tb_change_cell_style(start + strlen(left) + margin - 1,
-													 strlen(right) + 2,
-													 selection_line, 0xe8, 0x02);
-		}
+		uint16_t left_fg = selection == 0 ? 0xe8 : 0x07;
+		uint16_t left_bg = selection == 0 ? 0x02 : TB_DEFAULT;
+		uint16_t right_fg = selection == 0 ? 0x07 : 0xe8;
+		uint16_t right_bg = selection == 0 ? TB_DEFAULT : 0x02;
+
+		tb_change_cell_style(start - 1, strlen(left) + 2, selection_line, left_fg, left_bg);
+		tb_change_cell_style(start + strlen(left) + margin - 1,
+												 strlen(right) + 2,
+												 selection_line, right_fg, right_bg);
 
 		tb_present();
 
