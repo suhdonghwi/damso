@@ -155,6 +155,7 @@ void *get_code(void *payload)
       break;
     }
     case SCODE_PAIRING_RESULT:
+    case SCODE_PAIRING_ANSWER:
     {
       int *response = malloc(sizeof(int));
       read(status->sock->descriptor, response, sizeof(int));
@@ -325,6 +326,7 @@ void scene_chat_list(struct chat_status *status, int *result)
       write(status->sock->descriptor, &CCODE_PAIRING_ANSWER, sizeof(int));
       write(status->sock->descriptor, &answer, sizeof(int));
 
+      free(status->pair_request);
       status->pair_request = NULL;
     }
 
@@ -353,6 +355,18 @@ void scene_chat_list(struct chat_status *status, int *result)
             break;
           case 1:
             strcpy(error_message, "Opponent is busy");
+            break;
+          case 2:
+            ui_modal(45, 6, "Waiting for opponent's answer...", 3);
+
+            int answer = *(int *)wait_response(status);
+            free_response(status);
+
+            if (answer == 0)
+            {
+              strcpy(error_message, "You are rejected! :(");
+            }
+
             break;
           }
         }
