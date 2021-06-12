@@ -147,7 +147,28 @@ void *get_code(void *payload)
 void scene_name_input()
 {
   tb_clear();
-  char message[] = "What is your name?";
+
+  char logo[][34] = {
+      "     _                           ",
+      "    | |  Version 1.0             ",
+      "  __| | __ _ _ __ ___  ___  ___  ",
+      " / _` |/ _` | '_ ` _ \\/ __|/ _ \\ ",
+      "| (_| | (_| | | | | | \\__ \\ (_) |",
+      " \\__,_|\\__,_|_| |_| |_|___/\\___/ ",
+  };
+
+  for (int i = 0; i < 6; i++)
+  {
+    ui_print((tb_width() - strlen(logo[i])) / 2, tb_height() / 2 - 8 + i, logo[i], TB_MAGENTA | TB_BOLD, TB_DEFAULT);
+  }
+
+  char question[] = "Q. What is your name?";
+  ui_print((tb_width() - strlen(question)) / 2, tb_height() / 2, question, TB_WHITE, TB_DEFAULT);
+
+  char answer[] = "A. My name is []";
+  ui_print((tb_width() - strlen(answer)) / 2, tb_height() / 2 + 2, answer, TB_WHITE, TB_DEFAULT);
+
+  tb_present();
 
   struct tb_event ev;
   while (tb_poll_event(&ev))
@@ -162,7 +183,6 @@ void scene_name_input()
       }
       else
       {
-        ui_print(10, 10, "HELLO");
       }
     }
 
