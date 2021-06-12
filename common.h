@@ -8,8 +8,12 @@
 #define MAX_CLIENT_SIZE 1024
 #define PORT 5000
 
-const int CODE_CLIENT_LIST = 0;
-const int CODE_PAIRING = 1;
+const int SCODE_CLIENT_LIST = 0;
+const int SCODE_PAIRING_RESULT = 1;
+const int SCODE_PAIRING_REQUEST = 2;
+
+const int CCODE_PAIRING = 0;
+const int CCODE_PAIRING_ANSWER = 1;
 
 struct socket
 {

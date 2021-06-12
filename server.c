@@ -79,7 +79,7 @@ void send_client_list(struct client_array *arr)
   {
     struct client clnt = arr->list[i];
 
-    write(clnt.sock.descriptor, &CODE_CLIENT_LIST, sizeof(int));
+    write(clnt.sock.descriptor, &SCODE_CLIENT_LIST, sizeof(int));
     write(clnt.sock.descriptor, &arr->size, sizeof(arr->size));
     for (int j = 0; j < arr->size; j++)
     {
@@ -185,29 +185,36 @@ int main(int argc, char *argv[])
         {
           switch (code)
           {
-          case CODE_PAIRING: // Pairing request
+          case CCODE_PAIRING: // Pairing request
           {
-            int opponent;
-            read(clnt->sock.descriptor, &opponent, sizeof(opponent));
+            int opponent_index;
+            read(clnt->sock.descriptor, &opponent_index, sizeof(opponent_index));
+
+            struct client *opponent = &clnt_arr.list[opponent_index];
 
             int response;
-            if (opponent == clnt_index)
+            if (opponent_index == clnt_index)
             {
-              response = 0; // Can't pair with yourself :)
+              response = 0; // Wants to chat with yourself? :)
             }
-            else if (clnt_arr.list[opponent].data.opponent != -1)
+            else if (opponent->data.opponent != -1)
             {
               response = 1; // Opponent is busy
             }
             else
             {
-              response = 2; // Ok, pairing now
+              response = 2; // Ok, now wait for the answer
 
-              clnt->data.opponent = clnt_arr.list[opponent].data.uid;
-              clnt_arr.list[opponent].data.opponent = clnt->data.uid;
+              write(opponent->sock.descriptor, &SCODE_PAIRING_REQUEST, sizeof(int));
+              write(opponent->sock.descriptor, clnt->data.name, BUF_SIZE);
+
+              clnt->data.opponent = opponent->data.uid;
+              opponent->data.opponent = clnt->data.uid;
+
+              send_client_list(&clnt_arr);
             }
 
-            write(clnt->sock.descriptor, &CODE_PAIRING, sizeof(int));
+            write(clnt->sock.descriptor, &SCODE_PAIRING_RESULT, sizeof(int));
             write(clnt->sock.descriptor, &response, sizeof(int));
             break;
           }

@@ -83,6 +83,7 @@ struct chat_status
   char *name;
   struct socket *sock;
 
+  char *pair_request;
   void *response;
 };
 
@@ -113,7 +114,7 @@ void *get_code(void *payload)
 
     switch (code)
     {
-    case CODE_CLIENT_LIST:
+    case SCODE_CLIENT_LIST:
     {
       int length;
       read(status->sock->descriptor, &length, sizeof(length));
@@ -145,7 +146,15 @@ void *get_code(void *payload)
 
       break;
     }
-    case CODE_PAIRING:
+    case SCODE_PAIRING_REQUEST:
+    {
+      char *name = malloc(BUF_SIZE);
+      read(status->sock->descriptor, name, BUF_SIZE);
+
+      status->pair_request = name;
+      break;
+    }
+    case SCODE_PAIRING_RESULT:
     {
       int *response = malloc(sizeof(int));
       read(status->sock->descriptor, response, sizeof(int));
@@ -265,6 +274,7 @@ void scene_chat_list(struct chat_status *status, int *result)
   struct tb_event ev;
   while (1)
   {
+    tb_clear();
     ui_rect(rect_top,
             rect_top + rect_height,
             rect_left,
@@ -306,6 +316,15 @@ void scene_chat_list(struct chat_status *status, int *result)
 
     tb_present();
 
+    if (status->pair_request != NULL)
+    {
+      char message[BUF_SIZE] = "";
+      sprintf(message, "%s wants to chat with you. Do you want to accept?", status->pair_request);
+      int answer = ui_dialog(50, 10, message, "Yes", "Nah");
+
+      status->pair_request = NULL;
+    }
+
     if (tb_peek_event(&ev, 10))
     {
       switch (ev.type)
@@ -318,8 +337,7 @@ void scene_chat_list(struct chat_status *status, int *result)
         }
         else if (ev.key == TB_KEY_ENTER)
         {
-          int code = 1;
-          write(status->sock->descriptor, &code, sizeof(code));
+          write(status->sock->descriptor, &CCODE_PAIRING, sizeof(int));
           write(status->sock->descriptor, &selection, sizeof(selection));
 
           int *response = wait_response(status);
@@ -383,6 +401,8 @@ int main(int argc, char *argv[])
       .client_length = 0,
       .name = name,
       .sock = &clnt_sock,
+
+      .pair_request = NULL,
       .response = NULL,
   };
 
