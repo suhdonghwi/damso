@@ -220,8 +220,36 @@ void scene_name_input(char *output)
   }
 }
 
-void scene_chat_list(char **client_list, int *client_length)
+void scene_chat_list(struct chat_status *status)
 {
+  tb_clear();
+
+  int rect_width = 30, rect_height = 15;
+  int rect_top = (tb_height() - rect_height) / 2, rect_bottom = (tb_width() - rect_width) / 2;
+  ui_rect(rect_top,
+          rect_top + rect_height,
+          rect_bottom,
+          rect_bottom + rect_width,
+          TB_WHITE);
+
+  char message[BUF_SIZE] = "";
+  sprintf(message, "Hello, %s. Select a person to chat with!", status->name);
+  ui_print_center(rect_top - 2, message, TB_WHITE, TB_DEFAULT);
+  tb_present();
+
+  struct tb_event ev;
+  while (tb_poll_event(&ev))
+  {
+    switch (ev.type)
+    {
+    case TB_EVENT_KEY:
+      if (ev.key == TB_KEY_CTRL_Q)
+      {
+        tb_shutdown();
+        exit(0);
+      }
+    }
+  }
 }
 
 int main(int argc, char *argv[])
@@ -253,6 +281,8 @@ int main(int argc, char *argv[])
       .sock = &clnt_sock};
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
+
+  scene_chat_list(&chat_status);
 
   tb_shutdown();
   puts(name);
