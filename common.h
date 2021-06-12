@@ -14,46 +14,54 @@ struct socket
   struct sockaddr_in addr;
 };
 
+struct client_data
+{
+  char *name;
+  int opponent;
+};
+
 struct client
 {
   struct socket sock;
-  char *name;
+  struct client_data data;
 };
 
 struct client make_client(struct socket sock, char name[])
 {
   struct client result = {
       .sock = sock,
-      .name = malloc(BUF_SIZE),
-  };
+      .data = {
+          .name = malloc(BUF_SIZE),
+          .opponent = -1,
+      }};
 
-  strcpy(result.name, name);
+  strcpy(result.data.name, name);
   return result;
 }
 
 void free_client(struct client *clnt)
 {
-  free(clnt->name);
+  free(clnt->data.name);
 }
 
 struct client_array
 {
-  struct client data[MAX_CLIENT_SIZE];
+  struct client list[MAX_CLIENT_SIZE];
   int size;
 };
 
 void push_client_array(struct client_array *arr, struct client clnt)
 {
-  arr->data[arr->size++] = clnt;
+  arr->list[arr->size++] = clnt;
 }
 
 void remove_client_array(struct client_array *arr, int index)
 {
-  char *temp = arr->data[index].name;
+  char *temp = arr->list[index].data.name;
 
   for (int i = index + 1; i < arr->size; i++)
   {
-    arr->data[i - 1] = arr->data[i];
+    arr->list[i - 1] = arr->list[i];
   }
 
   free(temp);

@@ -56,11 +56,11 @@ struct socket make_multicast_sock(char *addr)
     error_handle("socket() error");
   }
 
-  struct sockaddr_in mul_addr; // 패킷을 보낼 주소의 정보를 담는 구조체입니다.
+  struct sockaddr_in mul_addr;
   memset(&mul_addr, 0, sizeof(mul_addr));
-  mul_addr.sin_family = AF_INET;              // IPv4 형식으로 지정합니다.
-  mul_addr.sin_addr.s_addr = inet_addr(addr); // IP를 지정합니다. htonl(INADDR_ANY)가 현재 시스템의 IP를 반환합니다.
-  mul_addr.sin_port = htons(PORT);            // 포트를 지정합니다.
+  mul_addr.sin_family = AF_INET;
+  mul_addr.sin_addr.s_addr = inet_addr(addr);
+  mul_addr.sin_port = htons(PORT);
 
   int on = 1;
   int time_live = 2;
@@ -78,13 +78,14 @@ void send_client_list(struct client_array *arr)
   int code = 1;
   for (int i = 0; i < arr->size; i++)
   {
-    struct client clnt = arr->data[i];
+    struct client clnt = arr->list[i];
 
     write(clnt.sock.descriptor, &code, sizeof(code));
     write(clnt.sock.descriptor, &arr->size, sizeof(arr->size));
     for (int j = 0; j < arr->size; j++)
     {
-      write(clnt.sock.descriptor, arr->data[j].name, BUF_SIZE);
+      write(clnt.sock.descriptor, arr->list[j].data.name, BUF_SIZE);
+      //write(clnt.sock.descriptor, &arr->list[j].data.opponent, sizeof(int));
     }
   }
 }
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
 
   FD_SET(serv_sock.descriptor, &read_set_backup);
 
-  struct client_array clnt_arr = {.data = {}, .size = 0};
+  struct client_array clnt_arr = {.list = {}, .size = 0};
   int fd_max = serv_sock.descriptor;
 
   while (1)
@@ -157,14 +158,14 @@ int main(int argc, char *argv[])
         fd_max = clnt.sock.descriptor;
 
       push_client_array(&clnt_arr, clnt);
-      printf("%s(%d) connected\n", clnt.name, clnt.sock.descriptor);
+      printf("%s(%d) connected\n", clnt.data.name, clnt.sock.descriptor);
 
       send_client_list(&clnt_arr);
     }
 
     for (int clnt_index = 0; clnt_index < clnt_arr.size; clnt_index++)
     {
-      struct client *clnt = &clnt_arr.data[clnt_index];
+      struct client *clnt = &clnt_arr.list[clnt_index];
       if (FD_ISSET(clnt->sock.descriptor, &read_set)) // read message
       {
         int code = 0;
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
           FD_CLR(clnt->sock.descriptor, &read_set_backup);
           close(clnt->sock.descriptor);
 
-          printf("%s(%d) closed\n", clnt->name, clnt->sock.descriptor);
+          printf("%s(%d) closed\n", clnt->data.name, clnt->sock.descriptor);
           remove_client_array(&clnt_arr, clnt_index);
           clnt_index--;
 
