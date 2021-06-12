@@ -165,28 +165,45 @@ void scene_name_input()
   char question[] = "Q. What is your name?";
   ui_print((tb_width() - strlen(question)) / 2, tb_height() / 2, question, TB_WHITE, TB_DEFAULT);
 
-  char answer[] = "A. My name is []";
-  ui_print((tb_width() - strlen(answer)) / 2, tb_height() / 2 + 2, answer, TB_WHITE, TB_DEFAULT);
-
-  tb_present();
+  char name[BUF_SIZE];
+  char answer[BUF_SIZE];
 
   struct tb_event ev;
-  while (tb_poll_event(&ev))
+  while (1)
   {
-    switch (ev.type)
-    {
-    case TB_EVENT_KEY:
-      if (ev.key == TB_KEY_CTRL_Q)
-      {
-        tb_shutdown();
-        exit(0);
-      }
-      else
-      {
-      }
-    }
+    sprintf(answer, "A. My name is [%s]", name);
+    int answer_line_no = tb_height() / 2 + 2;
+    tb_clear_line(answer_line_no);
+    ui_print((tb_width() - strlen(answer)) / 2, answer_line_no, answer, TB_WHITE, TB_DEFAULT);
 
     tb_present();
+
+    if (tb_poll_event(&ev))
+    {
+      switch (ev.type)
+      {
+      case TB_EVENT_KEY:
+        if (ev.key == TB_KEY_CTRL_Q)
+        {
+          tb_shutdown();
+          exit(0);
+        }
+        else if (ev.key == TB_KEY_BACKSPACE2)
+        {
+          int len = strlen(name);
+          if (len > 0)
+          {
+            name[len - 1] = '\0';
+          }
+        }
+        else
+        {
+          int len = strlen(name);
+          name[len] = ev.key == TB_KEY_SPACE ? ' ' : ev.ch;
+          name[len + 1] = '\0';
+        }
+      }
+    }
   }
 }
 
