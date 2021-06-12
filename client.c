@@ -320,7 +320,10 @@ void scene_chat_list(struct chat_status *status, int *result)
     {
       char message[BUF_SIZE] = "";
       sprintf(message, "%s wants to chat with you. Do you want to accept?", status->pair_request);
-      int answer = ui_dialog(50, 10, message, "Yes", "Nah");
+      int answer = !ui_dialog(50, 10, message, "Yes", "Nah");
+
+      write(status->sock->descriptor, &CCODE_PAIRING_ANSWER, sizeof(int));
+      write(status->sock->descriptor, &answer, sizeof(int));
 
       status->pair_request = NULL;
     }
@@ -340,9 +343,10 @@ void scene_chat_list(struct chat_status *status, int *result)
           write(status->sock->descriptor, &CCODE_PAIRING, sizeof(int));
           write(status->sock->descriptor, &selection, sizeof(selection));
 
-          int *response = wait_response(status);
+          int response = *(int *)wait_response(status);
+          free_response(status);
 
-          switch (*response)
+          switch (response)
           {
           case 0:
             strcpy(error_message, "You can't chat with yourself");
@@ -351,8 +355,6 @@ void scene_chat_list(struct chat_status *status, int *result)
             strcpy(error_message, "Opponent is busy");
             break;
           }
-
-          free_response(status);
         }
         else if (ev.key == TB_KEY_ARROW_DOWN)
         {

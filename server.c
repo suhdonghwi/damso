@@ -218,6 +218,26 @@ int main(int argc, char *argv[])
             write(clnt->sock.descriptor, &response, sizeof(int));
             break;
           }
+          case CCODE_PAIRING_ANSWER:
+          {
+            int answer;
+            read(clnt->sock.descriptor, &answer, sizeof(answer));
+
+            int opponent_index = find_client_array(&clnt_arr, clnt->data.opponent);
+            if (answer == 0)
+            {
+              clnt_arr.list[opponent_index].data.opponent = -1;
+              clnt->data.opponent = -1;
+            }
+            else if (answer == 1)
+            {
+            }
+
+            write(clnt->sock.descriptor, &SCODE_PAIRING_ANSWER, sizeof(int));
+            write(clnt->sock.descriptor, &answer, sizeof(int));
+
+            break;
+          }
           }
         }
       }

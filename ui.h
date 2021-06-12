@@ -65,7 +65,7 @@ void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
 	}
 }
 
-int ui_dialog(int width, int height, char *content, char *left, char *right)
+int ui_modal(int width, int height, char *content, int start_y)
 {
 	int rect_top = (tb_height() - height) / 2, rect_left = (tb_width() - width) / 2;
 	ui_rect(rect_top,
@@ -81,7 +81,7 @@ int ui_dialog(int width, int height, char *content, char *left, char *right)
 
 		memset(buf, '\0', BUF_SIZE);
 		strncpy(buf, content, to_copy);
-		ui_print_center(rect_top + 2 + i, buf, 0x07, TB_DEFAULT);
+		ui_print_center(rect_top + start_y + i, buf, 0x07, TB_DEFAULT);
 
 		content += to_copy;
 		if (content - tmp >= strlen(tmp))
@@ -90,7 +90,15 @@ int ui_dialog(int width, int height, char *content, char *left, char *right)
 		}
 	}
 
-	int margin = (width - strlen(left) - strlen(right)) / 3,
+	tb_present();
+}
+
+int ui_dialog(int width, int height, char *content, char *left, char *right)
+{
+	ui_modal(width, height, content, 2);
+
+	int rect_top = (tb_height() - height) / 2,
+			margin = (width - strlen(left) - strlen(right)) / 3,
 			selection_line = rect_top + height - 2;
 	char selections[BUF_SIZE] = "";
 	sprintf(selections, "%s%*c%s", left, margin, ' ', right);

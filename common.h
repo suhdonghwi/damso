@@ -11,6 +11,7 @@
 const int SCODE_CLIENT_LIST = 0;
 const int SCODE_PAIRING_RESULT = 1;
 const int SCODE_PAIRING_REQUEST = 2;
+const int SCODE_PAIRING_ANSWER = 3;
 
 const int CCODE_PAIRING = 0;
 const int CCODE_PAIRING_ANSWER = 1;
@@ -76,6 +77,19 @@ void remove_client_array(struct client_array *arr, int index)
 
   free(temp);
   arr->size--;
+}
+
+int find_client_array(struct client_array *arr, int uid)
+{
+  for (int i = 0; i < arr->size; i++)
+  {
+    if (arr->list[i].data.uid == uid)
+    {
+      return i;
+    }
+  }
+
+  return -1;
 }
 
 void error_handle(char *msg)
