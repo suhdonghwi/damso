@@ -11,12 +11,12 @@ void tb_clear_line(int y)
 	}
 }
 
-void tb_change_cell_style(int x_from, int x_to, int y, uint16_t fg, uint16_t bg)
+void tb_change_cell_style(int x_from, int count, int y, uint16_t fg, uint16_t bg)
 {
 	struct tb_cell *buf = tb_cell_buffer() + (y * tb_width() + x_from);
-	for (int x = x_from; x <= x_to; x++)
+	for (int i = 0; i < count; i++)
 	{
-		tb_change_cell(x, y, buf->ch, fg, bg);
+		tb_change_cell(x_from + i, y, buf->ch, fg, bg);
 		buf++;
 	}
 }
@@ -112,16 +112,17 @@ int ui_dialog(int width, int height, char *content, char *left, char *right)
 	{
 		if (selection == 0)
 		{
-			tb_change_cell_style(start - 1, start + strlen(left), selection_line, 0xe8, 0x02);
+			//fix to length based
+			tb_change_cell_style(start - 1, strlen(left) + 2, selection_line, 0xe8, 0x02);
 			tb_change_cell_style(start + strlen(left) + margin - 1,
-													 start + strlen(left) + margin + strlen(right),
+													 strlen(right) + 2,
 													 selection_line, 0x07, TB_DEFAULT);
 		}
 		else
 		{
-			tb_change_cell_style(start - 1, start + strlen(left), selection_line, 0x07, TB_DEFAULT);
+			tb_change_cell_style(start - 1, strlen(left) + 2, selection_line, 0x07, TB_DEFAULT);
 			tb_change_cell_style(start + strlen(left) + margin - 1,
-													 start + strlen(left) + margin + strlen(right),
+													 strlen(right) + 2,
 													 selection_line, 0xe8, 0x02);
 		}
 

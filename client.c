@@ -202,7 +202,7 @@ void scene_name_input(char *output)
     int start = ui_print_center(answer_line_no, answer, 0x07, TB_DEFAULT);
 
     tb_change_cell_style(start + 14,
-                         start + 14 + strlen(name) - 1,
+                         strlen(name),
                          answer_line_no,
                          0x02 | TB_UNDERLINE | TB_BOLD, TB_DEFAULT);
 
@@ -365,6 +365,9 @@ void scene_chat_list(struct chat_status *status, int *result)
             if (answer == 0)
             {
               strcpy(error_message, "You are rejected! :(");
+            }
+            else
+            {
             }
 
             break;
