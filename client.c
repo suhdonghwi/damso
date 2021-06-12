@@ -254,7 +254,7 @@ void scene_chat_list(struct chat_status *status, int *result)
 {
   tb_clear();
 
-  int rect_width = 30, rect_height = 15;
+  int rect_width = 35, rect_height = 17;
   int rect_top = (tb_height() - rect_height) / 2, rect_left = (tb_width() - rect_width) / 2;
 
   char message[BUF_SIZE] = "";
@@ -282,9 +282,9 @@ void scene_chat_list(struct chat_status *status, int *result)
       char item[BUF_SIZE] = "";
 
       struct client_data data = status->client_list[i];
-      if (strlen(data.name) > 24)
+      if (strlen(data.name) > 29)
       {
-        sprintf(item, "%d. %.21s...", i, data.name);
+        sprintf(item, "%d. %.26s...", i, data.name);
       }
       else
       {
@@ -324,7 +324,6 @@ void scene_chat_list(struct chat_status *status, int *result)
           write(status->sock->descriptor, &selection, sizeof(selection));
 
           int *response = wait_response(status);
-          //read(status->sock->descriptor, &response, 1);
 
           switch (*response)
           {
