@@ -55,4 +55,12 @@ void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
 		tb_change_cell(left, y, u'│', fg, TB_DEFAULT);
 		tb_change_cell(right, y, u'│', fg, TB_DEFAULT);
 	}
+
+	for (int x = left + 1; x < right; x++)
+	{
+		for (int y = top + 1; y < bottom; y++)
+		{
+			tb_change_cell(x, y, ' ', TB_DEFAULT, TB_DEFAULT);
+		}
+	}
 }

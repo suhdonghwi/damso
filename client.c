@@ -225,28 +225,40 @@ void scene_chat_list(struct chat_status *status)
   tb_clear();
 
   int rect_width = 30, rect_height = 15;
-  int rect_top = (tb_height() - rect_height) / 2, rect_bottom = (tb_width() - rect_width) / 2;
-  ui_rect(rect_top,
-          rect_top + rect_height,
-          rect_bottom,
-          rect_bottom + rect_width,
-          TB_WHITE);
+  int rect_top = (tb_height() - rect_height) / 2, rect_left = (tb_width() - rect_width) / 2;
 
   char message[BUF_SIZE] = "";
   sprintf(message, "Hello, %s. Select a person to chat with!", status->name);
-  ui_print_center(rect_top - 2, message, TB_WHITE, TB_DEFAULT);
-  tb_present();
 
   struct tb_event ev;
-  while (tb_poll_event(&ev))
+  while (1)
   {
-    switch (ev.type)
+    ui_rect(rect_top,
+            rect_top + rect_height,
+            rect_left,
+            rect_left + rect_width,
+            TB_WHITE);
+
+    for (int i = 0; i < status->client_length; i++)
     {
-    case TB_EVENT_KEY:
-      if (ev.key == TB_KEY_CTRL_Q)
+      char item[BUF_SIZE] = "";
+      sprintf(item, " %d. %s", i, status->client_list[i]);
+      ui_print(rect_left + 1, rect_top + i + 1, item, TB_WHITE, TB_DEFAULT);
+    }
+
+    ui_print_center(rect_top - 2, message, TB_WHITE, TB_DEFAULT);
+    tb_present();
+
+    if (tb_peek_event(&ev, 10))
+    {
+      switch (ev.type)
       {
-        tb_shutdown();
-        exit(0);
+      case TB_EVENT_KEY:
+        if (ev.key == TB_KEY_CTRL_Q)
+        {
+          tb_shutdown();
+          exit(0);
+        }
       }
     }
   }
