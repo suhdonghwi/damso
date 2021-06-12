@@ -156,6 +156,7 @@ void scene_name_input(char *output)
   while (1)
   {
     sprintf(answer, "A. My name is [%s]", name);
+
     int answer_line_no = tb_height() / 2 + 2;
     tb_clear_line(answer_line_no);
     ui_print_center(answer_line_no, answer, TB_WHITE, TB_DEFAULT);
@@ -244,6 +245,7 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
+  tb_shutdown();
   puts(name);
   /*
 
