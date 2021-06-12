@@ -80,6 +80,7 @@ struct chat_status
 {
   char **client_list;
   int client_length;
+  char *name;
   struct socket *sock;
 };
 
@@ -90,7 +91,7 @@ void *get_code(void *payload)
   {
     int code;
     read(status->sock->descriptor, &code, sizeof(code));
-    printf("RECEIVED CODE : %d\n", code);
+    //printf("RECEIVED CODE : %d\n", code);
 
     switch (code)
     {
@@ -126,7 +127,7 @@ void *get_code(void *payload)
   }
 }
 
-void scene_name_input()
+void scene_name_input(char *output)
 {
   tb_clear();
 
@@ -141,14 +142,15 @@ void scene_name_input()
 
   for (int i = 0; i < 6; i++)
   {
-    ui_print((tb_width() - strlen(logo[i])) / 2, tb_height() / 2 - 8 + i, logo[i], TB_MAGENTA | TB_BOLD, TB_DEFAULT);
+    ui_print_center(tb_height() / 2 - 8 + i, logo[i], TB_MAGENTA | TB_BOLD, TB_DEFAULT);
   }
 
   char question[] = "Q. What is your name?";
-  ui_print((tb_width() - strlen(question)) / 2, tb_height() / 2, question, TB_WHITE, TB_DEFAULT);
+  ui_print_center(tb_height() / 2, question, TB_WHITE, TB_DEFAULT);
 
-  char name[BUF_SIZE];
-  char answer[BUF_SIZE];
+  char name[BUF_SIZE] = "";
+  char answer[BUF_SIZE] = "";
+  char error_message[BUF_SIZE] = "";
 
   struct tb_event ev;
   while (1)
@@ -156,7 +158,10 @@ void scene_name_input()
     sprintf(answer, "A. My name is [%s]", name);
     int answer_line_no = tb_height() / 2 + 2;
     tb_clear_line(answer_line_no);
-    ui_print((tb_width() - strlen(answer)) / 2, answer_line_no, answer, TB_WHITE, TB_DEFAULT);
+    ui_print_center(answer_line_no, answer, TB_WHITE, TB_DEFAULT);
+
+    tb_clear_line(answer_line_no + 2);
+    ui_print_center(answer_line_no + 2, error_message, TB_RED, TB_DEFAULT);
 
     tb_present();
 
@@ -176,6 +181,26 @@ void scene_name_input()
           if (len > 0)
           {
             name[len - 1] = '\0';
+          }
+        }
+        else if (ev.key == TB_KEY_ENTER)
+        {
+          if (strlen(name) == 0)
+          {
+            strcpy(error_message, "Name should not be empty");
+          }
+          else if (name[0] == ' ')
+          {
+            strcpy(error_message, "Name should not start with space");
+          }
+          else if (name[strlen(name) - 1] == ' ')
+          {
+            strcpy(error_message, "Name should not end with space");
+          }
+          else
+          {
+            strcpy(output, name);
+            return;
           }
         }
         else
@@ -204,23 +229,23 @@ int main(int argc, char *argv[])
 
   tb_init();
 
-  scene_name_input();
-
-  char name[BUF_SIZE];
-
-  printf("What is your name? : ");
-  fgets(name, BUF_SIZE, stdin);
-  name[strcspn(name, "\n")] = 0;
-  system("clear");
+  char name[BUF_SIZE] = "";
+  scene_name_input(name);
 
   struct socket clnt_sock = make_client_sock(server_addr_str, name);
 
   pthread_t thread;
-
   char *client_list[MAX_CLIENT_SIZE] = {};
-  struct chat_status chat_status = {.client_list = client_list, .client_length = 0, .sock = &clnt_sock};
+  struct chat_status chat_status = {
+      .client_list = client_list,
+      .client_length = 0,
+      .name = name,
+      .sock = &clnt_sock};
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
+
+  puts(name);
+  /*
 
   while (1)
   {
@@ -229,6 +254,6 @@ int main(int argc, char *argv[])
       //printf("%d. %s\n", i, chat_status.client_list[i]);
     }
   }
-
+*/
   return 0;
 }
