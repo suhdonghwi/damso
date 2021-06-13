@@ -16,6 +16,7 @@ const int SCODE_OPPONENT_UID = 4;
 const int SCODE_SEND_NAME = 5;
 const int SCODE_CHAT_MESSAGE = 6;
 const int SCODE_FINISH_CHAT = 7;
+const int SCODE_SCREEN = 8;
 
 const int CCODE_PAIRING = 0;
 const int CCODE_PAIRING_ANSWER = 1;

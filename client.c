@@ -88,6 +88,8 @@ struct chat_status
 
   char *pair_request;
   void *response;
+
+  char **screen;
 };
 
 #define WAIT_RESPONSE(S, T) \
@@ -206,6 +208,32 @@ void *get_code(void *payload)
       free(status->chat_logs);
       status->chat_logs = NULL;
       status->chat_length = 0;
+      break;
+    }
+    case SCODE_SCREEN:
+    {
+      if (status->screen != NULL)
+      {
+        for (int i = 0; i < 14; i++)
+        {
+          free(status->screen[i]);
+        }
+        free(status->screen);
+      }
+
+      char **screen = malloc(sizeof(char *) * 14);
+
+      for (int i = 0; i < 14; i++)
+      {
+        char buf[BUF_SIZE];
+        read(status->sock->descriptor, buf, BUF_SIZE);
+
+        screen[i] = malloc(BUF_SIZE);
+        strcpy(screen[i], buf);
+        screen[i][28] = '\0';
+      }
+
+      status->screen = screen;
       break;
     }
     }
@@ -473,6 +501,13 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
             screen_left + length * 2,
             0x07);
     ui_print(screen_left + 1, screen_top - 1, "Server screen", 0x07, TB_DEFAULT);
+    if (status->screen != NULL)
+    {
+      for (int i = 0; i < 14; i++)
+      {
+        ui_print(screen_left + 1, screen_top + 1 + i, status->screen[i], 0x07, TB_DEFAULT);
+      }
+    }
 
     int text_width = tb_width() / 2 - 7;
     ui_print_width(5, tb_height() - 5, text_width, message + 1, 0x07, TB_DEFAULT);
@@ -576,6 +611,7 @@ int main(int argc, char *argv[])
 
       .chat_logs = NULL,
       .chat_length = 0,
+      .screen = NULL,
 
       .pair_request = NULL,
       .response = NULL,
@@ -597,6 +633,7 @@ int main(int argc, char *argv[])
 
     chat_status.chat_logs = malloc(sizeof(char *) * BUF_SIZE);
     chat_status.chat_length = 0;
+    chat_status.screen = NULL;
     scene_chatting(&chat_status, opponent_name);
   }
 

@@ -260,8 +260,30 @@ int main(int argc, char *argv[])
             int opponent_index = find_client_array(&clnt_arr, clnt->data.opponent);
             struct client *opponent = &clnt_arr.list[opponent_index];
 
-            write(opponent->sock.descriptor, &SCODE_CHAT_MESSAGE, sizeof(int));
-            write(opponent->sock.descriptor, message, BUF_SIZE);
+            if (message[0] == '/')
+            {
+              char command[BUF_SIZE] = "";
+              sprintf(command, "python3 ./command/main.py %d %d %s %s %s",
+                      clnt->data.uid, opponent->data.uid, clnt->data.name, opponent->data.name, message + 1);
+
+              FILE *fp = popen(command, "r");
+
+              write(clnt->sock.descriptor, &SCODE_SCREEN, sizeof(int));
+              write(opponent->sock.descriptor, &SCODE_SCREEN, sizeof(int));
+
+              char buf[BUF_SIZE];
+              while (fgets(buf, sizeof(buf), fp) != NULL)
+              {
+                write(clnt->sock.descriptor, buf, BUF_SIZE);
+                write(opponent->sock.descriptor, buf, BUF_SIZE);
+              }
+            }
+            else
+            {
+              write(opponent->sock.descriptor, &SCODE_CHAT_MESSAGE, sizeof(int));
+              write(opponent->sock.descriptor, message, BUF_SIZE);
+            }
+
             break;
           }
           case CCODE_LEAVE_CHAT:
