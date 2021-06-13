@@ -459,7 +459,7 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
     }
 
     char title[BUF_SIZE] = "";
-    sprintf(title, "Chatting with %s", opponent_name);
+    sprintf(title, "Chatting with %s (CTRL-Q to leave)", opponent_name);
     ui_print(4, 3, title, 0x07, TB_DEFAULT);
 
     ui_rect(4, tb_height() - 7, 3, tb_width() / 2 - 3, 0x07);
