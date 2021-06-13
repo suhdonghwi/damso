@@ -498,7 +498,7 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
     ui_rect(screen_top,
             screen_top + length,
             screen_left,
-            screen_left + length * 2,
+            screen_left + length * 2 - 1,
             0x07);
     ui_print(screen_left + 1, screen_top - 1, "Server screen", 0x07, TB_DEFAULT);
     if (status->screen != NULL)

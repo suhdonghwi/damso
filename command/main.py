@@ -14,5 +14,31 @@ def pair(x, y):
         return (x - 1) * y + (x - y - 2) ** 2 / 4
 
 
+def check_args():
+    if command == "rps" and len(args) == 1 and args[0] in ["r", "p", "s"]:
+        return
+    else:
+        message = [
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "       Invalid Command      ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+            "                            ",
+        ]
+        print("\n".join(message))
+        exit()
+
+
+check_args()
+
 commands = {"rps": rps}
 print("\n".join(commands[command](pair(uid1, uid2), me, op, *args)))
