@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   struct socket multi_sock = make_multicast_sock(argv[1]);
 
   struct timeval timeout;
-  timeout.tv_sec = 1;
+  timeout.tv_sec = 5;
   timeout.tv_usec = 0;
 
   fd_set read_set, read_set_backup;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
       push_client_array(&clnt_arr, clnt);
       printf("%s(%d) connected\n", clnt.data.name, clnt.sock.descriptor);
 
-      send_client_list(&clnt_arr);
+      //send_client_list(&clnt_arr);
     }
 
     for (int clnt_index = 0; clnt_index < clnt_arr.size; clnt_index++)
@@ -178,8 +178,6 @@ int main(int argc, char *argv[])
           printf("%s(%d) closed\n", clnt->data.name, clnt->sock.descriptor);
           remove_client_array(&clnt_arr, clnt_index);
           clnt_index--;
-
-          send_client_list(&clnt_arr);
         }
         else
         {
@@ -211,7 +209,7 @@ int main(int argc, char *argv[])
               clnt->data.opponent = opponent->data.uid;
               opponent->data.opponent = clnt->data.uid;
 
-              send_client_list(&clnt_arr);
+              //send_client_list(&clnt_arr);
             }
 
             write(clnt->sock.descriptor, &SCODE_PAIRING_RESULT, sizeof(int));
@@ -231,20 +229,24 @@ int main(int argc, char *argv[])
               opponent->data.opponent = -1;
               clnt->data.opponent = -1;
             }
-            else if (answer == 1)
+            else
             {
+              write(clnt->sock.descriptor, &SCODE_OPPONENT_UID, sizeof(int));
+              write(clnt->sock.descriptor, &opponent->data.uid, sizeof(int));
             }
 
             write(opponent->sock.descriptor, &SCODE_PAIRING_ANSWER, sizeof(int));
-            write(opponent->sock.descriptor, &answer, sizeof(int));
+            write(opponent->sock.descriptor, answer == 0 ? &answer : &clnt->data.uid, sizeof(int));
 
-            send_client_list(&clnt_arr);
+            //send_client_list(&clnt_arr);
             break;
           }
           }
         }
       }
     }
+
+    send_client_list(&clnt_arr);
   }
 
   close(serv_sock.descriptor);

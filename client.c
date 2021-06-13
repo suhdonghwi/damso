@@ -87,6 +87,10 @@ struct chat_status
   void *response;
 };
 
+#define WAIT_RESPONSE(S, T) \
+  *(T *)wait_response(S);   \
+  free_response(S)
+
 void *wait_response(struct chat_status *status)
 {
   while (status->response == NULL)
@@ -156,6 +160,7 @@ void *get_code(void *payload)
     }
     case SCODE_PAIRING_RESULT:
     case SCODE_PAIRING_ANSWER:
+    case SCODE_OPPONENT_UID:
     {
       int *response = malloc(sizeof(int));
       read(status->sock->descriptor, response, sizeof(int));
@@ -320,11 +325,18 @@ void scene_chat_list(struct chat_status *status, int *result)
     if (status->pair_request != NULL)
     {
       char message[BUF_SIZE] = "";
-      sprintf(message, "%s wants to chat with you. Do you want to accept?", status->pair_request);
+      sprintf(message, "'%s' wants to chat with you. Do you want to accept?", status->pair_request);
       int answer = !ui_dialog(50, 10, message, "Yes", "Nah");
 
       write(status->sock->descriptor, &CCODE_PAIRING_ANSWER, sizeof(int));
       write(status->sock->descriptor, &answer, sizeof(int));
+
+      if (answer == 1)
+      {
+        int opponent_uid = WAIT_RESPONSE(status, int);
+        *result = opponent_uid;
+        return;
+      }
 
       free(status->pair_request);
       status->pair_request = NULL;
@@ -345,8 +357,7 @@ void scene_chat_list(struct chat_status *status, int *result)
           write(status->sock->descriptor, &CCODE_PAIRING, sizeof(int));
           write(status->sock->descriptor, &selection, sizeof(selection));
 
-          int response = *(int *)wait_response(status);
-          free_response(status);
+          int response = WAIT_RESPONSE(status, int);
 
           switch (response)
           {
@@ -359,15 +370,16 @@ void scene_chat_list(struct chat_status *status, int *result)
           case 2:
             ui_modal(45, 6, "Waiting for opponent's answer...", 3);
 
-            int answer = *(int *)wait_response(status);
-            free_response(status);
+            int answer = WAIT_RESPONSE(status, int);
 
             if (answer == 0)
             {
               strcpy(error_message, "You are rejected! :(");
             }
-            else
+            else // answer == opponent's uid
             {
+              *result = answer;
+              return;
             }
 
             break;
@@ -431,7 +443,7 @@ int main(int argc, char *argv[])
   scene_chat_list(&chat_status, &result);
 
   tb_shutdown();
-  printf("%d\n", result);
+  printf("Opponent : %d\n", result);
 
   /*
   while (1)

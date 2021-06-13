@@ -12,6 +12,7 @@ const int SCODE_CLIENT_LIST = 0;
 const int SCODE_PAIRING_RESULT = 1;
 const int SCODE_PAIRING_REQUEST = 2;
 const int SCODE_PAIRING_ANSWER = 3;
+const int SCODE_OPPONENT_UID = 4;
 
 const int CCODE_PAIRING = 0;
 const int CCODE_PAIRING_ANSWER = 1;
@@ -37,7 +38,7 @@ struct client
 
 struct client make_client(struct socket sock, char name[])
 {
-  static int uid_count = 0;
+  static int uid_count = 1;
   struct client result = {
       .sock = sock,
       .data = {
