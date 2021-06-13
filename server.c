@@ -252,6 +252,18 @@ int main(int argc, char *argv[])
             write(clnt->sock.descriptor, clnt_arr.list[index].data.name, BUF_SIZE);
             break;
           }
+          case CCODE_CHAT_MESSAGE:
+          {
+            char message[BUF_SIZE];
+            read(clnt->sock.descriptor, message, BUF_SIZE - 1);
+
+            int opponent_index = find_client_array(&clnt_arr, clnt->data.opponent);
+            struct client *opponent = &clnt_arr.list[opponent_index];
+
+            write(opponent->sock.descriptor, &SCODE_CHAT_MESSAGE, sizeof(int));
+            write(opponent->sock.descriptor, message, BUF_SIZE);
+            break;
+          }
           }
         }
       }

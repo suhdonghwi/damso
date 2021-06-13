@@ -83,6 +83,9 @@ struct chat_status
   char *name;
   struct socket *sock;
 
+  char **chat_logs;
+  int chat_length;
+
   char *pair_request;
   void *response;
 };
@@ -105,6 +108,13 @@ void free_response(struct chat_status *status)
 {
   free(status->response);
   status->response = NULL;
+}
+
+void add_chat(struct chat_status *status, char *message)
+{
+  status->chat_logs[status->chat_length] = malloc(BUF_SIZE);
+  strcpy(status->chat_logs[status->chat_length], message);
+  status->chat_length++;
 }
 
 void *get_code(void *payload)
@@ -175,6 +185,14 @@ void *get_code(void *payload)
 
       status->response = name;
       break;
+    }
+    case SCODE_CHAT_MESSAGE:
+    {
+      char message[BUF_SIZE];
+      read(status->sock->descriptor, message + 1, BUF_SIZE);
+      message[0] = '1';
+
+      add_chat(status, message);
     }
     }
   }
@@ -415,6 +433,7 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
 {
   char message[BUF_SIZE];
   memset(message, '\0', BUF_SIZE);
+  message[0] = '0';
 
   while (1)
   {
@@ -427,7 +446,12 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
     ui_rect(5, tb_height() - 6, 3, tb_width() / 2 - 3, 0x07);
     ui_rect(tb_height() - 5, tb_height() - 2, 3, tb_width() / 2 - 3, 0x07);
 
-    ui_print_width(5, tb_height() - 4, tb_width() / 2 - 5, message, 0x07, TB_DEFAULT);
+    ui_print_width(5, tb_height() - 4, tb_width() / 2 - 5, message + 1, 0x07, TB_DEFAULT);
+
+    for (int i = 0; i < status->chat_length; i++)
+    {
+      ui_print(4, 6 + i, status->chat_logs[i], 0x07, TB_DEFAULT);
+    }
     tb_present();
 
     struct tb_event ev;
@@ -441,10 +465,20 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
           tb_shutdown();
           exit(0);
         }
+        else if (ev.key == TB_KEY_ENTER)
+        {
+          write(status->sock->descriptor, &CCODE_CHAT_MESSAGE, sizeof(int));
+          write(status->sock->descriptor, message + 1, BUF_SIZE - 1);
+
+          add_chat(status, message);
+
+          memset(message, '\0', BUF_SIZE);
+          message[0] = '0';
+        }
         else if (ev.key == TB_KEY_BACKSPACE2)
         {
           int len = strlen(message);
-          if (len > 0)
+          if (len > 1)
           {
             message[len - 1] = '\0';
           }
@@ -488,6 +522,9 @@ int main(int argc, char *argv[])
       .name = name,
       .sock = &clnt_sock,
 
+      .chat_logs = NULL,
+      .chat_length = 0,
+
       .pair_request = NULL,
       .response = NULL,
   };
@@ -504,6 +541,8 @@ int main(int argc, char *argv[])
   strcpy(opponent_name, (char *)wait_response(&chat_status));
   free_response(&chat_status);
 
+  chat_status.chat_logs = malloc(sizeof(char *) * BUF_SIZE);
+  chat_status.chat_length = 0;
   scene_chatting(&chat_status, opponent_name);
 
   tb_shutdown();
