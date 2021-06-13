@@ -462,10 +462,19 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
     sprintf(title, "Chatting with %s (CTRL-Q to leave)", opponent_name);
     ui_print(4, 3, title, 0x07, TB_DEFAULT);
 
-    ui_rect(4, tb_height() - 7, 3, tb_width() / 2 - 3, 0x07);
-    ui_rect(tb_height() - 6, tb_height() - 3, 3, tb_width() / 2 - 3, 0x07);
+    ui_rect(4, tb_height() - 7, 3, tb_width() / 2 - 1, 0x07);
+    ui_rect(tb_height() - 6, tb_height() - 3, 3, tb_width() / 2 - 1, 0x07);
 
-    int text_width = tb_width() / 2 - 9;
+    int length = 15;
+    int screen_top = (tb_height() - length) / 2, screen_left = tb_width() / 2 + (tb_width() / 2 - length * 2) / 2;
+    ui_rect(screen_top,
+            screen_top + length,
+            screen_left,
+            screen_left + length * 2,
+            0x07);
+    ui_print(screen_left + 1, screen_top - 1, "Server screen", 0x07, TB_DEFAULT);
+
+    int text_width = tb_width() / 2 - 7;
     ui_print_width(5, tb_height() - 5, text_width, message + 1, 0x07, TB_DEFAULT);
 
     int line = tb_height() - 10;
