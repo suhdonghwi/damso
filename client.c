@@ -168,6 +168,14 @@ void *get_code(void *payload)
       status->response = response;
       break;
     }
+    case SCODE_SEND_NAME:
+    {
+      char *name = malloc(BUF_SIZE);
+      read(status->sock->descriptor, name, BUF_SIZE);
+
+      status->response = name;
+      break;
+    }
     }
   }
 }
@@ -193,7 +201,9 @@ void scene_name_input(char *output)
   char question[] = "Q. What is your name?";
   ui_print_center(tb_height() / 2, question, 0x07, TB_DEFAULT);
 
-  char name[BUF_SIZE] = "";
+  char name[BUF_SIZE];
+  memset(name, '\0', BUF_SIZE);
+
   char answer[BUF_SIZE] = "";
   char error_message[BUF_SIZE] = "";
 
@@ -257,7 +267,6 @@ void scene_name_input(char *output)
         {
           int len = strlen(name);
           name[len] = ev.key == TB_KEY_SPACE ? ' ' : ev.ch;
-          name[len + 1] = '\0';
         }
       }
     }
@@ -266,8 +275,6 @@ void scene_name_input(char *output)
 
 void scene_chat_list(struct chat_status *status, int *result)
 {
-  tb_clear();
-
   int rect_width = 35, rect_height = 17;
   int rect_top = (tb_height() - rect_height) / 2, rect_left = (tb_width() - rect_width) / 2;
 
@@ -404,6 +411,54 @@ void scene_chat_list(struct chat_status *status, int *result)
   }
 }
 
+void scene_chatting(struct chat_status *status, char *opponent_name)
+{
+  char message[BUF_SIZE];
+  memset(message, '\0', BUF_SIZE);
+
+  while (1)
+  {
+    tb_clear();
+
+    char title[BUF_SIZE] = "";
+    sprintf(title, "Chatting with %s", opponent_name);
+    ui_print_center(2, title, 0x07, TB_DEFAULT);
+
+    ui_rect(5, tb_height() - 6, 3, tb_width() / 2 - 3, 0x07);
+    ui_rect(tb_height() - 5, tb_height() - 2, 3, tb_width() / 2 - 3, 0x07);
+
+    ui_print_width(5, tb_height() - 4, tb_width() / 2 - 5, message, 0x07, TB_DEFAULT);
+    tb_present();
+
+    struct tb_event ev;
+    if (tb_peek_event(&ev, 10))
+    {
+      switch (ev.type)
+      {
+      case TB_EVENT_KEY:
+        if (ev.key == TB_KEY_CTRL_Q)
+        {
+          tb_shutdown();
+          exit(0);
+        }
+        else if (ev.key == TB_KEY_BACKSPACE2)
+        {
+          int len = strlen(message);
+          if (len > 0)
+          {
+            message[len - 1] = '\0';
+          }
+        }
+        else
+        {
+          int len = strlen(message);
+          message[len] = ev.key == TB_KEY_SPACE ? ' ' : ev.ch;
+        }
+      }
+    }
+  }
+}
+
 int main(int argc, char *argv[])
 {
   if (argc != 3)
@@ -439,11 +494,20 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
-  int result = 0;
-  scene_chat_list(&chat_status, &result);
+  int opponent_uid = 0;
+  scene_chat_list(&chat_status, &opponent_uid);
+
+  write(clnt_sock.descriptor, &CCODE_GET_NAME, sizeof(int));
+  write(clnt_sock.descriptor, &opponent_uid, sizeof(int));
+
+  char *opponent_name = malloc(BUF_SIZE);
+  strcpy(opponent_name, (char *)wait_response(&chat_status));
+  free_response(&chat_status);
+
+  scene_chatting(&chat_status, opponent_name);
 
   tb_shutdown();
-  printf("Opponent : %d\n", result);
+  printf("Opponent : %s\n", opponent_name);
 
   /*
   while (1)

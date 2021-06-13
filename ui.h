@@ -37,6 +37,25 @@ int ui_print_center(int y, char *str, uint16_t fg, uint16_t bg)
 	return start;
 }
 
+void ui_print_width(int x, int y, int width, char *str, uint16_t fg, uint16_t bg)
+{
+	char buf[BUF_SIZE], *tmp = str;
+	for (int i = 0;; i++)
+	{
+		int to_copy = width - 4;
+
+		memset(buf, '\0', BUF_SIZE);
+		strncpy(buf, str, to_copy);
+		ui_print(x, y + i, buf, 0x07, TB_DEFAULT);
+
+		str += to_copy;
+		if (str - tmp >= strlen(tmp))
+		{
+			break;
+		}
+	}
+}
+
 void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
 {
 	tb_change_cell(left, top, u'┌', fg, TB_DEFAULT);

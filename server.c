@@ -241,6 +241,17 @@ int main(int argc, char *argv[])
             //send_client_list(&clnt_arr);
             break;
           }
+          case CCODE_GET_NAME:
+          {
+            int uid;
+            read(clnt->sock.descriptor, &uid, sizeof(uid));
+
+            int index = find_client_array(&clnt_arr, uid);
+
+            write(clnt->sock.descriptor, &SCODE_SEND_NAME, sizeof(int));
+            write(clnt->sock.descriptor, clnt_arr.list[index].data.name, BUF_SIZE);
+            break;
+          }
           }
         }
       }

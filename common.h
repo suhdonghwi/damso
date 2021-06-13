@@ -13,9 +13,11 @@ const int SCODE_PAIRING_RESULT = 1;
 const int SCODE_PAIRING_REQUEST = 2;
 const int SCODE_PAIRING_ANSWER = 3;
 const int SCODE_OPPONENT_UID = 4;
+const int SCODE_SEND_NAME = 5;
 
 const int CCODE_PAIRING = 0;
 const int CCODE_PAIRING_ANSWER = 1;
+const int CCODE_GET_NAME = 2;
 
 struct socket
 {
