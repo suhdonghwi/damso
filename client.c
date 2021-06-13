@@ -448,9 +448,14 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
 
     ui_print_width(5, tb_height() - 4, tb_width() / 2 - 5, message + 1, 0x07, TB_DEFAULT);
 
+    int line = 0;
     for (int i = 0; i < status->chat_length; i++)
     {
-      ui_print(4, 6 + i, status->chat_logs[i], 0x07, TB_DEFAULT);
+      int is_mine = status->chat_logs[i][0] == '0';
+      ui_print(5, 7 + line, is_mine ? status->name : opponent_name, 0xe8, is_mine ? 0x02 : 0x01);
+      int printed = ui_print_width(5, 8 + line, tb_width() / 2 - 5, status->chat_logs[i] + 1, 0x07, TB_DEFAULT);
+
+      line += printed + 2;
     }
     tb_present();
 

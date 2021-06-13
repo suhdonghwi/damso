@@ -37,10 +37,11 @@ int ui_print_center(int y, char *str, uint16_t fg, uint16_t bg)
 	return start;
 }
 
-void ui_print_width(int x, int y, int width, char *str, uint16_t fg, uint16_t bg)
+int ui_print_width(int x, int y, int width, char *str, uint16_t fg, uint16_t bg)
 {
 	char buf[BUF_SIZE], *tmp = str;
-	for (int i = 0;; i++)
+	int i;
+	for (i = 0;; i++)
 	{
 		int to_copy = width - 4;
 
@@ -54,6 +55,8 @@ void ui_print_width(int x, int y, int width, char *str, uint16_t fg, uint16_t bg
 			break;
 		}
 	}
+
+	return i + 1;
 }
 
 void ui_rect(int top, int bottom, int left, int right, uint16_t fg)
