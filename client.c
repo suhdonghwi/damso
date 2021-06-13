@@ -193,6 +193,20 @@ void *get_code(void *payload)
       message[0] = '1';
 
       add_chat(status, message);
+      break;
+    }
+
+    case SCODE_FINISH_CHAT:
+    {
+      for (int i = 0; i < status->chat_length; i++)
+      {
+        free(status->chat_logs[i]);
+      }
+
+      free(status->chat_logs);
+      status->chat_logs = NULL;
+      status->chat_length = 0;
+      break;
     }
     }
   }
@@ -353,6 +367,9 @@ void scene_chat_list(struct chat_status *status, int *result)
       sprintf(message, "'%s' wants to chat with you. Do you want to accept?", status->pair_request);
       int answer = !ui_dialog(50, 10, message, "Yes", "Nah");
 
+      free(status->pair_request);
+      status->pair_request = NULL;
+
       write(status->sock->descriptor, &CCODE_PAIRING_ANSWER, sizeof(int));
       write(status->sock->descriptor, &answer, sizeof(int));
 
@@ -362,9 +379,6 @@ void scene_chat_list(struct chat_status *status, int *result)
         *result = opponent_uid;
         return;
       }
-
-      free(status->pair_request);
-      status->pair_request = NULL;
     }
 
     if (tb_peek_event(&ev, 10))
@@ -439,6 +453,11 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
   {
     tb_clear();
 
+    if (status->chat_logs == NULL)
+    {
+      return;
+    }
+
     char title[BUF_SIZE] = "";
     sprintf(title, "Chatting with %s", opponent_name);
     ui_print(4, 3, title, 0x07, TB_DEFAULT);
@@ -483,8 +502,8 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
       case TB_EVENT_KEY:
         if (ev.key == TB_KEY_CTRL_Q)
         {
-          tb_shutdown();
-          exit(0);
+          write(status->sock->descriptor, &CCODE_LEAVE_CHAT, sizeof(int));
+          return;
         }
         else if (ev.key == TB_KEY_ENTER)
         {
@@ -555,31 +574,23 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread, NULL, get_code, (void *)&chat_status);
 
-  int opponent_uid = 0;
-  scene_chat_list(&chat_status, &opponent_uid);
-
-  write(clnt_sock.descriptor, &CCODE_GET_NAME, sizeof(int));
-  write(clnt_sock.descriptor, &opponent_uid, sizeof(int));
-
-  char *opponent_name = malloc(BUF_SIZE);
-  strcpy(opponent_name, (char *)wait_response(&chat_status));
-  free_response(&chat_status);
-
-  chat_status.chat_logs = malloc(sizeof(char *) * BUF_SIZE);
-  chat_status.chat_length = 0;
-  scene_chatting(&chat_status, opponent_name);
-
-  tb_shutdown();
-  printf("Opponent : %s\n", opponent_name);
-
-  /*
   while (1)
   {
-    for (int i = 0; i < chat_status.client_length; i++)
-    {
-      //printf("%d. %s\n", i, chat_status.client_list[i]);
-    }
+    int opponent_uid = 0;
+    scene_chat_list(&chat_status, &opponent_uid);
+
+    write(clnt_sock.descriptor, &CCODE_GET_NAME, sizeof(int));
+    write(clnt_sock.descriptor, &opponent_uid, sizeof(int));
+
+    char *opponent_name = malloc(BUF_SIZE);
+    strcpy(opponent_name, (char *)wait_response(&chat_status));
+    free_response(&chat_status);
+
+    chat_status.chat_logs = malloc(sizeof(char *) * BUF_SIZE);
+    chat_status.chat_length = 0;
+    scene_chatting(&chat_status, opponent_name);
   }
-*/
+
+  tb_shutdown();
   return 0;
 }
