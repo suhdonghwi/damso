@@ -441,21 +441,37 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
 
     char title[BUF_SIZE] = "";
     sprintf(title, "Chatting with %s", opponent_name);
-    ui_print_center(2, title, 0x07, TB_DEFAULT);
+    ui_print(4, 3, title, 0x07, TB_DEFAULT);
 
-    ui_rect(5, tb_height() - 6, 3, tb_width() / 2 - 3, 0x07);
-    ui_rect(tb_height() - 5, tb_height() - 2, 3, tb_width() / 2 - 3, 0x07);
+    ui_rect(4, tb_height() - 7, 3, tb_width() / 2 - 3, 0x07);
+    ui_rect(tb_height() - 6, tb_height() - 3, 3, tb_width() / 2 - 3, 0x07);
 
-    ui_print_width(5, tb_height() - 4, tb_width() / 2 - 5, message + 1, 0x07, TB_DEFAULT);
+    int text_width = tb_width() / 2 - 9;
+    ui_print_width(5, tb_height() - 5, text_width, message + 1, 0x07, TB_DEFAULT);
 
-    int line = 0;
-    for (int i = 0; i < status->chat_length; i++)
+    int line = tb_height() - 10;
+    for (int i = status->chat_length - 1; i >= 0; i--)
     {
-      int is_mine = status->chat_logs[i][0] == '0';
-      ui_print(5, 7 + line, is_mine ? status->name : opponent_name, 0xe8, is_mine ? 0x02 : 0x01);
-      int printed = ui_print_width(5, 8 + line, tb_width() / 2 - 5, status->chat_logs[i] + 1, 0x07, TB_DEFAULT);
+      int chat_line_count = (strlen(status->chat_logs[i] + 1) - 1) / text_width;
 
-      line += printed + 2;
+      line -= chat_line_count - 1;
+      if (line <= 4)
+        break;
+
+      ui_print_width(5, line, tb_width() / 2 - 9, status->chat_logs[i] + 1, 0x07, TB_DEFAULT);
+
+      int is_mine = status->chat_logs[i][0] == '0';
+      line--;
+      if (line <= 4)
+        break;
+
+      ui_print(5, line, " ", 0xe8, is_mine ? 0x02 : 0x01);
+      ui_print(6, line, is_mine ? status->name : opponent_name, 0xe8, is_mine ? 0x02 : 0x01);
+      ui_print(6 + strlen(is_mine ? status->name : opponent_name), line, " ", 0xe8, is_mine ? 0x02 : 0x01);
+
+      line -= 3;
+      if (line <= 4)
+        break;
     }
     tb_present();
 
@@ -472,13 +488,16 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
         }
         else if (ev.key == TB_KEY_ENTER)
         {
-          write(status->sock->descriptor, &CCODE_CHAT_MESSAGE, sizeof(int));
-          write(status->sock->descriptor, message + 1, BUF_SIZE - 1);
+          if (strlen(message) > 1)
+          {
+            write(status->sock->descriptor, &CCODE_CHAT_MESSAGE, sizeof(int));
+            write(status->sock->descriptor, message + 1, BUF_SIZE - 1);
 
-          add_chat(status, message);
+            add_chat(status, message);
 
-          memset(message, '\0', BUF_SIZE);
-          message[0] = '0';
+            memset(message, '\0', BUF_SIZE);
+            message[0] = '0';
+          }
         }
         else if (ev.key == TB_KEY_BACKSPACE2)
         {

@@ -43,7 +43,7 @@ int ui_print_width(int x, int y, int width, char *str, uint16_t fg, uint16_t bg)
 	int i;
 	for (i = 0;; i++)
 	{
-		int to_copy = width - 4;
+		int to_copy = width;
 
 		memset(buf, '\0', BUF_SIZE);
 		strncpy(buf, str, to_copy);
