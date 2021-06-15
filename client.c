@@ -398,7 +398,7 @@ void scene_chat_list(struct chat_status *status, int *result)
       free(status->pair_request);
       status->pair_request = NULL;
 
-      write(status->sock->descriptor, &CCODE_PAIRING_ANSWER, sizeof(int));
+      write_code(status->sock->descriptor, CCODE_PAIRING_ANSWER);
       write(status->sock->descriptor, &answer, sizeof(int));
 
       if (answer == 1)
@@ -421,7 +421,7 @@ void scene_chat_list(struct chat_status *status, int *result)
         }
         else if (ev.key == TB_KEY_ENTER)
         {
-          write(status->sock->descriptor, &CCODE_PAIRING, sizeof(int));
+          write_code(status->sock->descriptor, CCODE_PAIRING);
           write(status->sock->descriptor, &selection, sizeof(selection));
 
           int response = WAIT_RESPONSE(status, int);
@@ -546,14 +546,14 @@ void scene_chatting(struct chat_status *status, char *opponent_name)
       case TB_EVENT_KEY:
         if (ev.key == TB_KEY_CTRL_Q)
         {
-          write(status->sock->descriptor, &CCODE_LEAVE_CHAT, sizeof(int));
+          write_code(status->sock->descriptor, CCODE_LEAVE_CHAT);
           return;
         }
         else if (ev.key == TB_KEY_ENTER)
         {
           if (strlen(message) > 1)
           {
-            write(status->sock->descriptor, &CCODE_CHAT_MESSAGE, sizeof(int));
+            write_code(status->sock->descriptor, CCODE_CHAT_MESSAGE);
             write(status->sock->descriptor, message + 1, BUF_SIZE - 1);
 
             add_chat(status, message);
@@ -624,7 +624,7 @@ int main(int argc, char *argv[])
     int opponent_uid = 0;
     scene_chat_list(&chat_status, &opponent_uid);
 
-    write(clnt_sock.descriptor, &CCODE_GET_NAME, sizeof(int));
+    write_code(clnt_sock.descriptor, CCODE_GET_NAME);
     write(clnt_sock.descriptor, &opponent_uid, sizeof(int));
 
     char *opponent_name = malloc(BUF_SIZE);

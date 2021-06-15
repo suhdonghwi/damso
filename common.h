@@ -8,21 +8,32 @@
 #define MAX_CLIENT_SIZE 1024
 #define PORT 5000
 
-const int SCODE_CLIENT_LIST = 0;
-const int SCODE_PAIRING_RESULT = 1;
-const int SCODE_PAIRING_REQUEST = 2;
-const int SCODE_PAIRING_ANSWER = 3;
-const int SCODE_OPPONENT_UID = 4;
-const int SCODE_SEND_NAME = 5;
-const int SCODE_CHAT_MESSAGE = 6;
-const int SCODE_FINISH_CHAT = 7;
-const int SCODE_SCREEN = 8;
+enum
+{
+  SCODE_CLIENT_LIST,
+  SCODE_PAIRING_RESULT,
+  SCODE_PAIRING_REQUEST,
+  SCODE_PAIRING_ANSWER,
+  SCODE_OPPONENT_UID,
+  SCODE_SEND_NAME,
+  SCODE_CHAT_MESSAGE,
+  SCODE_FINISH_CHAT,
+  SCODE_SCREEN
+};
 
-const int CCODE_PAIRING = 0;
-const int CCODE_PAIRING_ANSWER = 1;
-const int CCODE_GET_NAME = 2;
-const int CCODE_CHAT_MESSAGE = 3;
-const int CCODE_LEAVE_CHAT = 4;
+enum
+{
+  CCODE_PAIRING,
+  CCODE_PAIRING_ANSWER,
+  CCODE_GET_NAME,
+  CCODE_CHAT_MESSAGE,
+  CCODE_LEAVE_CHAT,
+};
+
+void write_code(int descriptor, int code)
+{
+  write(descriptor, &code, sizeof(int));
+}
 
 struct socket
 {

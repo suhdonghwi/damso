@@ -79,7 +79,7 @@ void send_client_list(struct client_array *arr)
   {
     struct client clnt = arr->list[i];
 
-    write(clnt.sock.descriptor, &SCODE_CLIENT_LIST, sizeof(int));
+    write_code(clnt.sock.descriptor, SCODE_CLIENT_LIST);
     write(clnt.sock.descriptor, &arr->size, sizeof(arr->size));
     for (int j = 0; j < arr->size; j++)
     {
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   struct socket multi_sock = make_multicast_sock(argv[1]);
 
   struct timeval timeout;
-  timeout.tv_sec = 5;
+  timeout.tv_sec = 1;
   timeout.tv_usec = 0;
 
   fd_set read_set, read_set_backup;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
             {
               response = 2; // Ok, now wait for the answer
 
-              write(opponent->sock.descriptor, &SCODE_PAIRING_REQUEST, sizeof(int));
+              write_code(opponent->sock.descriptor, SCODE_PAIRING_REQUEST);
               write(opponent->sock.descriptor, clnt->data.name, BUF_SIZE);
 
               clnt->data.opponent = opponent->data.uid;
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
               //send_client_list(&clnt_arr);
             }
 
-            write(clnt->sock.descriptor, &SCODE_PAIRING_RESULT, sizeof(int));
+            write_code(clnt->sock.descriptor, SCODE_PAIRING_RESULT);
             write(clnt->sock.descriptor, &response, sizeof(int));
 
             break;
@@ -231,11 +231,11 @@ int main(int argc, char *argv[])
             }
             else
             {
-              write(clnt->sock.descriptor, &SCODE_OPPONENT_UID, sizeof(int));
+              write_code(clnt->sock.descriptor, SCODE_OPPONENT_UID);
               write(clnt->sock.descriptor, &opponent->data.uid, sizeof(int));
             }
 
-            write(opponent->sock.descriptor, &SCODE_PAIRING_ANSWER, sizeof(int));
+            write_code(opponent->sock.descriptor, SCODE_PAIRING_ANSWER);
             write(opponent->sock.descriptor, answer == 0 ? &answer : &clnt->data.uid, sizeof(int));
 
             //send_client_list(&clnt_arr);
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 
             int index = find_client_array(&clnt_arr, uid);
 
-            write(clnt->sock.descriptor, &SCODE_SEND_NAME, sizeof(int));
+            write_code(clnt->sock.descriptor, SCODE_SEND_NAME);
             write(clnt->sock.descriptor, clnt_arr.list[index].data.name, BUF_SIZE);
             break;
           }
@@ -263,13 +263,13 @@ int main(int argc, char *argv[])
             if (message[0] == '/')
             {
               char command[BUF_SIZE] = "";
-              sprintf(command, "python3 ./command/main.py %d %d %s %s %s",
+              sprintf(command, "python3 ./command/main.py %d %d \"%s\" \"%s\" %s",
                       clnt->data.uid, opponent->data.uid, clnt->data.name, opponent->data.name, message + 1);
 
               FILE *fp = popen(command, "r");
 
-              write(clnt->sock.descriptor, &SCODE_SCREEN, sizeof(int));
-              write(opponent->sock.descriptor, &SCODE_SCREEN, sizeof(int));
+              write_code(clnt->sock.descriptor, SCODE_SCREEN);
+              write_code(opponent->sock.descriptor, SCODE_SCREEN);
 
               char buf[BUF_SIZE];
               while (fgets(buf, sizeof(buf), fp) != NULL)
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-              write(opponent->sock.descriptor, &SCODE_CHAT_MESSAGE, sizeof(int));
+              write_code(opponent->sock.descriptor, SCODE_CHAT_MESSAGE);
               write(opponent->sock.descriptor, message, BUF_SIZE);
             }
 
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
             opponent->data.opponent = -1;
             clnt->data.opponent = -1;
 
-            write(opponent->sock.descriptor, &SCODE_FINISH_CHAT, sizeof(int));
+            write_code(opponent->sock.descriptor, SCODE_FINISH_CHAT);
             break;
           }
           }
