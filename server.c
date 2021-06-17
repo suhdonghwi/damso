@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
           {
           case CCODE_PAIRING: // Pairing request
           {
+            puts("CCODE_PAIRING");
             int opponent_index;
             read(clnt->sock.descriptor, &opponent_index, sizeof(opponent_index));
 
@@ -220,6 +221,7 @@ int main(int argc, char *argv[])
           }
           case CCODE_PAIRING_ANSWER:
           {
+            puts("CCODE_PAIRING_ANSWER");
             int answer;
             read(clnt->sock.descriptor, &answer, sizeof(answer));
 
@@ -244,6 +246,7 @@ int main(int argc, char *argv[])
           }
           case CCODE_GET_NAME:
           {
+            puts("CCODE_GET_NAME");
             int uid;
             read(clnt->sock.descriptor, &uid, sizeof(uid));
 
@@ -255,6 +258,7 @@ int main(int argc, char *argv[])
           }
           case CCODE_CHAT_MESSAGE:
           {
+            puts("CCODE_CHAT_MESSAGE");
             char message[BUF_SIZE];
             read(clnt->sock.descriptor, message, BUF_SIZE - 1);
 
@@ -289,6 +293,7 @@ int main(int argc, char *argv[])
           }
           case CCODE_LEAVE_CHAT:
           {
+            puts("CCODE_LEAVE_CHAT");
             int opponent_index = find_client_array(&clnt_arr, clnt->data.opponent);
             struct client *opponent = &clnt_arr.list[opponent_index];
             opponent->data.opponent = -1;
@@ -302,6 +307,7 @@ int main(int argc, char *argv[])
       }
     }
 
+    puts("sending clients list");
     send_client_list(&clnt_arr);
   }
 

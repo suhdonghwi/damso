@@ -4,4 +4,4 @@ client:
 
 server:
 	gcc server.c -o ./output/server
-	./output/server 239.0.140.1 192.168.100.14
+	./output/server 239.0.140.1 172.16.0.117
