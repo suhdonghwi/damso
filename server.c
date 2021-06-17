@@ -131,7 +131,8 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-    FD_COPY(&read_set_backup, &read_set);
+    memcpy(read_set.fds_bits, read_set_backup.fds_bits, sizeof(read_set.fds_bits));
+    //FD_COPY(&read_set_backup, &read_set);
 
     // Heartbeat
     sendto(multi_sock.descriptor, server_addr, sizeof(server_addr), 0, (struct sockaddr *)&multi_sock.addr, sizeof(multi_sock.addr));
