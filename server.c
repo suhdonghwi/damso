@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-    memcpy(read_set.fds_bits, read_set_backup.fds_bits, sizeof(read_set.fds_bits));
+    memcpy(&read_set, &read_set_backup, sizeof(read_set));
     //FD_COPY(&read_set_backup, &read_set);
 
     // Heartbeat
