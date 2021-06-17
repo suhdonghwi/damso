@@ -126,7 +126,6 @@ void *get_code(void *payload)
   {
     int code;
     read(status->sock->descriptor, &code, sizeof(code));
-    //printf("RECEIVED CODE : %d\n", code);
 
     switch (code)
     {

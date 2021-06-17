@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   struct socket multi_sock = make_multicast_sock(argv[1]);
 
   struct timeval timeout;
-  timeout.tv_sec = 1;
+  timeout.tv_sec = 3;
   timeout.tv_usec = 0;
 
   fd_set read_set, read_set_backup;
