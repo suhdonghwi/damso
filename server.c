@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   struct socket multi_sock = make_multicast_sock(argv[1]);
 
   struct timeval timeout;
-  timeout.tv_sec = 3;
+  timeout.tv_sec = 1;
   timeout.tv_usec = 0;
 
   fd_set read_set, read_set_backup;
@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
     {
       // printf("Timeout\n");
     }
+
+    timeout.tv_sec = 1;
 
     if (FD_ISSET(serv_sock.descriptor, &read_set)) // connection request
     {
