@@ -232,6 +232,7 @@ void *get_code(void *payload)
       for (int i = 0; i < 14; i++)
       {
         screen[i] = malloc(BUF_SIZE);
+        memset(screen[i], '\0', BUF_SIZE);
         read(status->sock->descriptor, screen[i], BUF_SIZE);
         //screen[i][28] = '\0';
       }
