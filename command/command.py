@@ -24,7 +24,7 @@ def command(name):
                 **kwargs,
             )
 
-            with open(filename, "wb") as f:
+            with open(filename, "wb+") as f:
                 pickle.dump(state, f)
 
             return ret
