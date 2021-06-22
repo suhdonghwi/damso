@@ -230,11 +230,8 @@ void *get_code(void *payload)
 
       for (int i = 0; i < 14; i++)
       {
-        char buf[BUF_SIZE];
-        read(status->sock->descriptor, buf, BUF_SIZE);
-
         screen[i] = malloc(BUF_SIZE);
-        strcpy(screen[i], buf);
+        read(status->sock->descriptor, screen[i], BUF_SIZE);
         //screen[i][28] = '\0';
       }
 
