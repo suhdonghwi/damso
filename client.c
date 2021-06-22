@@ -40,6 +40,8 @@ void receive_server_addr(char *dest, char *multi_addr)
     error_handle("setsockopt() join error");
   }
 
+  puts("Waiting for server address...");
+
   char server_addr[BUF_SIZE];
   int len = recvfrom(multi_sock, &server_addr, sizeof(server_addr), 0, NULL, 0);
   if (len < 0)
@@ -65,9 +67,13 @@ struct socket make_client_sock(char *server_addr_str, char name[])
   serv_addr.sin_addr.s_addr = inet_addr(server_addr_str);
   serv_addr.sin_port = htons(PORT);
 
-  if (connect(descriptor, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
+  while (connect(descriptor, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
   {
-    error_handle("connect() error");
+    if (errno == EINTR) {
+      continue;
+    } else {
+      error_handle("connect() error");
+    }
   }
 
   write(descriptor, name, BUF_SIZE);
@@ -229,7 +235,7 @@ void *get_code(void *payload)
 
         screen[i] = malloc(BUF_SIZE);
         strcpy(screen[i], buf);
-        screen[i][28] = '\0';
+        //screen[i][28] = '\0';
       }
 
       status->screen = screen;

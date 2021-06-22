@@ -277,10 +277,15 @@ int main(int argc, char *argv[])
               write_code(opponent->sock.descriptor, SCODE_SCREEN);
 
               char buf[BUF_SIZE];
+              int i = 0;
               while (fgets(buf, sizeof(buf), fp) != NULL)
               {
+                buf[28] = '\0';
+                printf("length : %ld\n", strlen(buf));
                 write(clnt->sock.descriptor, buf, BUF_SIZE);
                 write(opponent->sock.descriptor, buf, BUF_SIZE);
+
+                i++;
               }
             }
             else
