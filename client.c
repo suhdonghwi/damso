@@ -217,6 +217,7 @@ void *get_code(void *payload)
     }
     case SCODE_SCREEN:
     {
+      /*
       if (status->screen != NULL)
       {
         for (int i = 0; i < 14; i++)
@@ -224,7 +225,7 @@ void *get_code(void *payload)
           free(status->screen[i]);
         }
         free(status->screen);
-      }
+      }*/
 
       char **screen = malloc(sizeof(char *) * 14);
 
